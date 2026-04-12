@@ -1,0 +1,592 @@
+/* ========================================
+   MOBILE CRYPTO DASHBOARD
+   Inspired by Binance/Coinbase mobile apps
+   ======================================== */
+
+.dashboard-mobile {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0e1a 0%, #0c1022 100%);
+  padding: 12px 16px 0;
+}
+
+/* Status Bar */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Greeting */
+.greeting-section {
+  margin-bottom: 20px;
+}
+
+.greeting-title {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff, #a8a8b0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Wallet Card */
+.wallet-card {
+  background: linear-gradient(135deg, rgba(247, 147, 26, 0.12), rgba(255, 204, 2, 0.04));
+  border: 1px solid var(--border-gold-s);
+  border-radius: 28px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.wallet-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-icon {
+  font-size: 20px;
+}
+
+.wallet-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.wallet-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wallet-balance {
+  font-size: 36px;
+  font-weight: 800;
+  font-family: monospace;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.wallet-change-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.change-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.change-amount {
+  color: #10b981;
+  font-size: 13px;
+}
+
+/* Time Filters */
+.time-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.time-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.time-chip.active {
+  background: var(--gold);
+  color: #0a0a14;
+  font-weight: 700;
+}
+
+/* Quick Actions Row */
+.quick-actions-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.quick-action-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 20px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-action-chip:active {
+  transform: scale(0.96);
+}
+
+.quick-action-icon {
+  font-size: 24px;
+}
+
+.quick-action-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Chart Card */
+.chart-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.see-all-btn {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chart-price-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-coin-price {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.chart-change-negative {
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Chart Bars */
+.chart-container {
+  height: 160px;
+  margin: 16px 0;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 100%;
+  gap: 4px;
+}
+
+.bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-bar {
+  width: 100%;
+  background: linear-gradient(180deg, var(--gold), #ffb347);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s;
+  min-height: 4px;
+}
+
+.bar-label {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.chart-stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.mini-stat {
+  text-align: center;
+}
+
+.mini-stat-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.mini-stat-value {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Ranking Card */
+.ranking-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ranking-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Stats Tabs */
+.stats-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stat-tab {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stat-tab.active {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.stat-tab.active .stat-tab-label,
+.stat-tab.active .stat-tab-value {
+  color: #0a0a14;
+}
+
+.stat-tab-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-tab-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Ranking List */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.ranking-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ranking-position {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 28px;
+}
+
+.ranking-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ranking-symbol {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.ranking-name {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.ranking-right {
+  text-align: right;
+}
+
+.ranking-price {
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ranking-change {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ranking-change.positive {
+  color: #10b981;
+}
+
+.ranking-change.negative {
+  color: #ef4444;
+}
+
+/* Detail Card (SOL/USDT) */
+.detail-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.detail-pair {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.detail-arrow {
+  color: var(--text-muted);
+}
+
+.detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-price {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.detail-change.negative {
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.detail-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.holdings-row,
+.volume-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.holdings-label,
+.volume-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.holdings-value,
+.volume-value {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.volume-change.positive {
+  color: #10b981;
+  font-size: 12px;
+}
+
+/* ETH Card */
+.eth-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.eth-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eth-icon {
+  font-size: 24px;
+}
+
+.eth-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.eth-right {
+  text-align: right;
+}
+
+.eth-price {
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.eth-change.positive {
+  color: #10b981;
+  font-size: 11px;
+}
+
+/* Buy/Swap Button */
+.buy-swap-button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold), #ffb347);
+  border: none;
+  border-radius: 40px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0a0a14;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-family: inherit;
+}
+
+.buy-swap-button:active {
+  transform: scale(0.98);
+}
+
+.bottom-padding {
+  height: 80px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wallet-card,
+.chart-card,
+.ranking-card,
+.detail-card,
+.eth-card {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+/* Active states for touch feedback */
+.quick-action-chip:active,
+.time-chip:active,
+.stat-tab:active,
+.ranking-item:active,
+.detail-card:active,
+.eth-card:active {
+  opacity: 0.7;
+}

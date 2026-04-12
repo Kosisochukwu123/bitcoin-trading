@@ -1,0 +1,450 @@
+/* ========================================
+   P2P PAGE - Unique Class Names
+   ======================================== */
+
+.p2p-page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e1a 0%, #0c1022 100%);
+  padding: 24px;
+}
+
+/* ---------- PAGE HEADER ---------- */
+.p2p-page-header {
+  margin-bottom: 28px;
+}
+
+.p2p-page-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff, #a8a8b0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 6px;
+}
+
+.p2p-page-header p {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ---------- CONTROLS BAR ---------- */
+.p2p-controls-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Toggle Wrapper */
+.p2p-toggle-wrapper {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2d3748;
+  border-radius: 48px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.p2p-toggle-btn {
+  padding: 8px 28px;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: inherit;
+  background: transparent;
+  color: #9ca3af;
+}
+
+.p2p-toggle-buy.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.p2p-toggle-sell.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Coin Filters */
+.p2p-coin-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.p2p-coin-filter-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2d3748;
+  border-radius: 40px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #9ca3af;
+  font-family: inherit;
+}
+
+.p2p-coin-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.p2p-coin-filter-btn.active {
+  background: linear-gradient(135deg, #f7931a, #ffb347);
+  border-color: transparent;
+  color: #0a0a14;
+}
+
+/* Offers Count */
+.p2p-offers-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+/* ---------- TABLE ---------- */
+.p2p-table-wrapper {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid #2d3748;
+  border-radius: 24px;
+  overflow-x: auto;
+}
+
+.p2p-table-header {
+  display: grid;
+  grid-template-columns: 2.5fr 1.5fr 1.5fr 1fr 1fr 120px;
+  padding: 16px 24px;
+  background: rgba(247, 147, 26, 0.05);
+  border-bottom: 1px solid #2d3748;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.p2p-table-row {
+  display: grid;
+  grid-template-columns: 2.5fr 1.5fr 1.5fr 1fr 1fr 120px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #2d3748;
+  transition: all 0.2s;
+  align-items: center;
+}
+
+.p2p-table-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  transform: translateX(4px);
+}
+
+/* Advertiser Info */
+.p2p-advertiser-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.p2p-advertiser-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.p2p-advertiser-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: white;
+}
+
+.p2p-advertiser-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+.p2p-online-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.p2p-online-status.online {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.p2p-online-status.offline {
+  background: #6b7280;
+}
+
+.p2p-advertiser-stats {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 40px;
+}
+
+/* Price Info */
+.p2p-price-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.p2p-price-value {
+  font-weight: 800;
+  font-size: 15px;
+  color: #10b981;
+  font-family: monospace;
+}
+
+.p2p-price-unit {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+/* Limit Info */
+.p2p-limit-info {
+  font-size: 12px;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+/* Payment Method */
+.p2p-payment-method {
+  display: inline-block;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #60a5fa;
+  width: fit-content;
+}
+
+/* Order Count */
+.p2p-order-count {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Trade Button */
+.p2p-trade-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: inherit;
+  width: fit-content;
+}
+
+.p2p-trade-buy {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.p2p-trade-buy:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.p2p-trade-sell {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.p2p-trade-sell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ---------- EMPTY STATE ---------- */
+.p2p-empty-state {
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.p2p-empty-state span {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.p2p-empty-state h4 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.p2p-empty-state p {
+  color: #9ca3af;
+  margin-bottom: 20px;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .p2p-page-container {
+    padding: 20px;
+  }
+
+  .p2p-table-header,
+  .p2p-table-row {
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 0.8fr 100px;
+    gap: 12px;
+  }
+
+  .p2p-advertiser-stats {
+    margin-left: 0;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .p2p-page-container {
+    padding: 16px;
+    padding-bottom: 80px;
+  }
+
+  .p2p-page-header h1 {
+    font-size: 24px;
+  }
+
+  .p2p-controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .p2p-toggle-wrapper {
+    justify-content: center;
+  }
+
+  .p2p-coin-filters {
+    justify-content: center;
+  }
+
+  .p2p-offers-count {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .p2p-table-header,
+  .p2p-table-row {
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+    min-width: 650px;
+  }
+
+  .p2p-table-header span:last-child,
+  .p2p-table-row .p2p-trade-btn {
+    display: none;
+  }
+
+  .p2p-advertiser-stats {
+    font-size: 9px;
+  }
+
+  .p2p-price-value {
+    font-size: 13px;
+  }
+
+  .p2p-limit-info {
+    font-size: 10px;
+  }
+
+  .p2p-payment-method {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .p2p-table-header,
+  .p2p-table-row {
+    grid-template-columns: 1.8fr 1fr 1fr 0.8fr;
+    min-width: 580px;
+    padding: 12px 16px;
+  }
+
+  .p2p-advertiser-name {
+    font-size: 11px;
+  }
+
+  .p2p-advertiser-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+/* Animations */
+@keyframes p2pFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.p2p-table-row {
+  animation: p2pFadeIn 0.3s ease forwards;
+}
+
+.p2p-table-row:nth-child(1) { animation-delay: 0.05s; }
+.p2p-table-row:nth-child(2) { animation-delay: 0.1s; }
+.p2p-table-row:nth-child(3) { animation-delay: 0.15s; }
+.p2p-table-row:nth-child(4) { animation-delay: 0.2s; }
+.p2p-table-row:nth-child(5) { animation-delay: 0.25s; }
+.p2p-table-row:nth-child(6) { animation-delay: 0.3s; }
+
+/* Hover Effects */
+.p2p-table-row:hover .p2p-trade-btn {
+  transform: translateY(-2px);
+}
+
+.p2p-table-row:hover .p2p-advertiser-avatar {
+  transform: scale(1.05);
+}
+
+/* Scrollbar for table wrapper */
+.p2p-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.p2p-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.p2p-table-wrapper::-webkit-scrollbar-thumb {
+  background: #f7931a;
+  border-radius: 10px;
+}
