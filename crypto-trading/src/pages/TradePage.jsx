@@ -1,108 +1,150 @@
-import { useState, useMemo } from "react";
+/**
+ * TradePage.jsx
+ * All styles live in TradePage.css — no inline styles except
+ * dynamic values (colours driven by data, % widths, etc.)
+ */
+
+import { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { CoinChip, CandleChart, OrderBook } from "../components/UI";
+import { CoinChip } from "../components/UI";
 import "./TradePage.css";
 
-function OrderTypeBtns({ value, onChange }) {
+// ── Order Book ────────────────────────────────────────────────
+function OrderBookPanel({ price }) {
+  const asks = Array.from({ length: 8 }, (_, i) => ({
+    p: (price + (i + 1) * price * 0.0012).toFixed(price < 1 ? 4 : 2),
+    a: (Math.random() * 2 + 0.01).toFixed(4),
+    w: 20 + Math.floor(Math.random() * 60),
+  }));
+  const bids = Array.from({ length: 8 }, (_, i) => ({
+    p: (price - (i + 1) * price * 0.0012).toFixed(price < 1 ? 4 : 2),
+    a: (Math.random() * 2 + 0.01).toFixed(4),
+    w: 20 + Math.floor(Math.random() * 60),
+  }));
+
+  const Row = ({ o, side }) => (
+    <div className={`ob-row ${side}`}>
+      <div className="ob-row__bar" style={{ width: `${o.w}%` }} />
+      <span className="ob-row__price">{o.p}</span>
+      <span className="ob-row__amount">{o.a}</span>
+      <span className="ob-row__total">{(parseFloat(o.p) * parseFloat(o.a)).toFixed(2)}</span>
+    </div>
+  );
+
   return (
-    <div className="trade-order-type-group">
-      {["Market", "Limit", "Stop-Limit"].map(t => {
-        const typeValue = t.toLowerCase().replace("-", "_");
-        return (
-          <button
-            key={t}
-            onClick={() => onChange(typeValue)}
-            className={`trade-order-type-btn ${value === typeValue ? "active" : ""}`}
-          >
-            {t}
-          </button>
-        );
-      })}
+    <div>
+      <div className="ob-header">
+        <span>Price</span>
+        <span>Amount</span>
+        <span>Total</span>
+      </div>
+      {asks.slice().reverse().map((o, i) => <Row key={i} o={o} side="ask" />)}
+      <div className="ob-mid-price">${parseFloat(price).toLocaleString()}</div>
+      {bids.map((o, i) => <Row key={i} o={o} side="bid" />)}
     </div>
   );
 }
 
+// ── Horizontal coin tab bar (shown on tablet / mobile) ────────
+function CoinTabs({ coins, selectedId, onSelect }) {
+  return (
+    <div className="trade-coin-tabs">
+      {coins.map(c => (
+        <button
+          key={c.id}
+          className={`trade-coin-tab${selectedId === c.id ? " active" : ""}`}
+          onClick={() => onSelect(c.id)}
+        >
+          {c.icon} {c.id}
+          <span style={{ marginLeft: 4, fontFamily: "var(--font-mono)", fontSize: 10 }}>
+            ${c.price.toLocaleString()}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 export default function TradePage() {
   const { coins, user, executeTrade } = useApp();
-  const [sel, setSel] = useState("BTC");
-  const [side, setSide] = useState("buy");
-  const [otype, setOtype] = useState("market");
-  const [amount, setAmount] = useState("");
-  const [lp, setLp] = useState("");
-  const [pct, setPct] = useState(0);
-  const [result, setResult] = useState(null);
 
-  const coin = coins.find(c => c.id === sel);
-  const price = otype === "limit" && lp ? parseFloat(lp) : coin?.price || 0;
-  const qty = parseFloat(amount || 0);
+  const [selectedId, setSelectedId] = useState("BTC");
+  const [side,       setSide]       = useState("buy");
+  const [orderType,  setOrderType]  = useState("market");
+  const [amount,     setAmount]     = useState("");
+  const [limitPrice, setLimitPrice] = useState("");
+  const [pct,        setPct]        = useState(0);
+  const [result,     setResult]     = useState(null);
+
+  const coin  = coins.find(c => c.id === selectedId);
+  const price = orderType === "limit" && limitPrice ? parseFloat(limitPrice) : (coin?.price || 0);
+  const qty   = parseFloat(amount) || 0;
   const total = qty * price;
-  const maxBuy = (user?.balance || 0) / price;
-  const maxSell = user?.portfolio?.[sel] || 0;
+  const fee   = total * 0.001;
 
-  const setPercent = p => {
+  const maxBuy  = (user?.balance || 0) / price;
+  const maxSell = user?.portfolio?.[selectedId] || 0;
+
+  const selectCoin = id => { setSelectedId(id); setAmount(""); setPct(0); setResult(null); };
+
+  const handleSetPercent = p => {
     setPct(p);
-    const max = side === "buy" ? maxBuy : maxSell;
-    setAmount(((max * p) / 100).toFixed(6));
+    setAmount(((side === "buy" ? maxBuy : maxSell) * p / 100).toFixed(6));
   };
 
   const handleTrade = () => {
-    if (!qty || qty <= 0) return;
-    const res = executeTrade(sel, side, qty, price);
-    setResult(res);
-    if (res.success) {
-      setAmount("");
-      setPct(0);
-      setTimeout(() => setResult(null), 3000);
-    }
+    if (!qty || qty <= 0) { setResult({ success: false, message: "Enter an amount" }); return; }
+    const res = executeTrade(selectedId, side, qty, price);
+    setResult({ success: res.success, message: res.success ? "Trade executed!" : "Trade failed" });
+    if (res.success) { setAmount(""); setPct(0); setTimeout(() => setResult(null), 3000); }
   };
 
-  const availableDisplay = side === "buy"
-    ? `$${(user?.balance || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT`
-    : `${maxSell.toFixed(4)} ${sel}`;
+  const availableLabel = side === "buy"
+    ? `$${(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`
+    : `${maxSell.toFixed(6)} ${selectedId}`;
+
+  const seed = coins.findIndex(c => c.id === selectedId) + 1;
 
   return (
-    <div className="trade-page-container">
+    <div className="trade-page">
 
-      {/* ── PAIR LIST ── */}
-      <div className="trade-pair-list-card">
-        <div className="trade-pair-list-header">
-          USDT Pairs
-        </div>
-        <div className="trade-pair-list">
-          {coins.map(c => (
-            <div
-              key={c.id}
-              className={`trade-pair-item ${sel === c.id ? "active" : ""}`}
-              onClick={() => {
-                setSel(c.id);
-                setAmount("");
-                setPct(0);
-              }}
-            >
-              <div>
-                <div className="trade-pair-name">{c.id}/USDT</div>
-                <div className="trade-pair-price">${c.price.toLocaleString()}</div>
-              </div>
-              <div className={`trade-pair-change ${c.change >= 0 ? "positive" : "negative"}`}>
-                {c.change >= 0 ? "+" : ""}{c.change}%
-              </div>
+      {/* ── PAIR LIST (desktop only) ──────────────────────── */}
+      <div className="card trade-pairs">
+        <div className="trade-pairs__title">USDT Pairs</div>
+        {coins.map(c => (
+          <div
+            key={c.id}
+            className={`trade-pair-item${selectedId === c.id ? " active" : ""}`}
+            onClick={() => selectCoin(c.id)}
+          >
+            <div>
+              <div className="trade-pair-item__name">{c.id}/USDT</div>
+              <div className="trade-pair-item__price">${c.price.toLocaleString()}</div>
             </div>
-          ))}
-        </div>
+            <div className={`trade-pair-item__change ${c.change >= 0 ? "positive" : "negative"}`}>
+              {c.change >= 0 ? "+" : ""}{c.change}%
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ── CHART + ORDER BOOK ── */}
+      {/* ── CHART SECTION ─────────────────────────────────── */}
       <div className="trade-chart-section">
-        {/* Price header */}
-        <div className="trade-price-card">
+
+        {/* Coin tab bar — visible on tablet/mobile (CSS shows/hides) */}
+        <CoinTabs coins={coins} selectedId={selectedId} onSelect={selectCoin} />
+
+        {/* Price card */}
+        <div className="card">
           <div className="trade-price-header">
             <CoinChip coin={coin} size={42} />
-            <div>
-              <div className="trade-coin-symbol">
-                {coin?.id}/USDT
-              </div>
-              <div className="trade-coin-name">{coin?.name}</div>
+
+            <div className="trade-coin-label">
+              <span className="trade-coin-symbol">{coin?.id}/USDT</span>
+              <span className="trade-coin-name">{coin?.name}</span>
             </div>
+
             <div>
               <div className={`trade-current-price ${coin?.change >= 0 ? "positive" : "negative"}`}>
                 ${coin?.price?.toLocaleString()}
@@ -111,12 +153,12 @@ export default function TradePage() {
                 {coin?.change >= 0 ? "+" : ""}{coin?.change}% (24h)
               </div>
             </div>
+
             <div className="trade-price-stats">
               {[
-                ["24h High", `$${(coin?.price * 1.03).toLocaleString(undefined, { maximumFractionDigits: 2 })}`],
-                ["24h Low", `$${(coin?.price * 0.97).toLocaleString(undefined, { maximumFractionDigits: 2 })}`],
-                ["Volume", coin?.volume],
-                ["Mkt Cap", coin?.marketCap],
+                ["24h High", `$${((coin?.price || 0) * 1.03).toFixed(2)}`],
+                ["24h Low",  `$${((coin?.price || 0) * 0.97).toFixed(2)}`],
+                ["Volume",   coin?.volume],
               ].map(([l, v]) => (
                 <div key={l}>
                   <div className="trade-price-stat-label">{l}</div>
@@ -126,125 +168,154 @@ export default function TradePage() {
             </div>
           </div>
 
-          {/* Chart */}
-          <CandleChart height={250} seed={coins.findIndex(c => c.id === sel) + 1} />
+          {/* Candlestick bars */}
+          <div className="trade-chart-area">
+            {Array.from({ length: 70 }, (_, i) => {
+              const h  = 30 + Math.sin((i + seed) * 0.25) * 22 + ((i * seed * 7) % 30);
+              const up = ((i * seed + 3) % 5) !== 0;
+              return (
+                <div
+                  key={i}
+                  className={`trade-chart-bar ${up ? "up" : "down"}`}
+                  style={{ height: `${Math.max(h, 8)}%` }}
+                />
+              );
+            })}
+          </div>
         </div>
 
-        {/* Order Book */}
-        <div className="trade-orderbook-card">
-          <div className="trade-orderbook-title">Order Book</div>
-          <OrderBook price={coin?.price || 0} />
+        {/* Order book */}
+        <div className="card trade-orderbook">
+          <div className="trade-orderbook__title">Order Book</div>
+          <OrderBookPanel price={coin?.price || 0} />
         </div>
       </div>
 
-      {/* ── TRADE PANEL ── */}
-      <div className="trade-panel-card">
+      {/* ── TRADE PANEL ───────────────────────────────────── */}
+      <div className="card trade-panel">
 
-        {/* Buy / Sell toggle */}
+        {/* Buy / Sell */}
         <div className="trade-side-toggle">
-          <button className={`trade-side-btn trade-buy-btn ${side === "buy" ? "active" : ""}`} onClick={() => setSide("buy")}>
-            Buy
-          </button>
-          <button className={`trade-side-btn trade-sell-btn ${side === "sell" ? "active" : ""}`} onClick={() => setSide("sell")}>
-            Sell
-          </button>
+          {["buy", "sell"].map(s => (
+            <button
+              key={s}
+              className={`trade-side-btn ${s}${side === s ? " active" : ""}`}
+              onClick={() => { setSide(s); setAmount(""); setPct(0); }}
+            >
+              {s === "buy" ? "Buy" : "Sell"}
+            </button>
+          ))}
         </div>
 
         {/* Order type */}
-        <OrderTypeBtns value={otype} onChange={setOtype} />
+        <div className="trade-order-types">
+          {[["market","Market"], ["limit","Limit"], ["stop_limit","Stop-Limit"]].map(([val, label]) => (
+            <button
+              key={val}
+              className={`trade-order-type-btn${orderType === val ? " active" : ""}`}
+              onClick={() => setOrderType(val)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {/* Available balance */}
-        <div className="trade-available-balance">
-          <span className="trade-available-label">Available</span>
-          <span className="trade-available-value">{availableDisplay}</span>
+        <div className="trade-available">
+          <span className="trade-available__label">Available</span>
+          <span className={`trade-available__value ${side}`}>{availableLabel}</span>
         </div>
 
         {/* Limit price */}
-        {otype !== "market" && (
+        {orderType !== "market" && (
           <div className="trade-input-group">
             <label className="trade-input-label">Price (USDT)</label>
             <input
-              className="trade-input"
               type="number"
-              value={lp}
-              onChange={e => setLp(e.target.value)}
+              value={limitPrice}
               placeholder={coin?.price?.toString()}
+              onChange={e => setLimitPrice(e.target.value)}
             />
           </div>
         )}
 
         {/* Amount */}
         <div className="trade-input-group">
-          <label className="trade-input-label">Amount ({sel})</label>
+          <label className="trade-input-label">Amount ({selectedId})</label>
           <input
-            className="trade-input"
             type="number"
             value={amount}
-            onChange={e => {
-              setAmount(e.target.value);
-              setPct(0);
-            }}
             placeholder="0.000000"
+            onChange={e => { setAmount(e.target.value); setPct(0); }}
           />
         </div>
 
-        {/* Percent quick-pick */}
-        <div className="trade-percent-buttons">
+        {/* % buttons */}
+        <div className="trade-pct-row">
           {[25, 50, 75, 100].map(p => (
             <button
               key={p}
-              className={`trade-percent-btn ${pct === p ? "active" : ""}`}
-              onClick={() => setPercent(p)}
+              className={`trade-pct-btn${pct === p ? " active" : ""}`}
+              onClick={() => handleSetPercent(p)}
             >
               {p}%
             </button>
           ))}
         </div>
 
-        {/* Order summary */}
+        {/* Summary */}
         <div className="trade-summary">
           <div className="trade-summary-row">
             <span>Total</span>
             <span>${total.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</span>
           </div>
-          <div className="trade-summary-row">
+          <div className="trade-summary-row fee">
             <span>Fee (0.1%)</span>
-            <span className="trade-fee-amount">${(total * 0.001).toFixed(4)}</span>
+            <span>${fee.toFixed(4)}</span>
           </div>
+          {side === "buy" && (
+            <div className="trade-summary-row after-balance">
+              <span>Balance after</span>
+              <span>
+                ${Math.max(0, (user?.balance || 0) - total - fee)
+                  .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Submit */}
         <button
-          className={`trade-submit-btn trade-submit-${side}`}
-          onClick={handleTrade}
+          className={`trade-submit-btn ${side}`}
           disabled={!qty || qty <= 0}
+          onClick={handleTrade}
         >
-          {side === "buy" ? `Buy ${sel}` : `Sell ${sel}`}
+          {side === "buy" ? `Buy ${selectedId}` : `Sell ${selectedId}`}
         </button>
 
         {/* Result */}
         {result && (
-          <div className={`trade-result-message ${result.success ? "success" : "error"}`}>
-            {result.success ? "✅ Trade executed successfully!" : "❌ Trade failed — try again"}
+          <div className={`trade-result ${result.success ? "success" : "error"}`}>
+            {result.success ? "✅ " : "❌ "}{result.message}
           </div>
         )}
 
-        {/* Market stats */}
+        {/* Market info */}
         <div className="trade-market-info">
-          <div className="trade-market-info-title">Market Info</div>
+          <div className="trade-market-info__title">Market Info</div>
           {[
-            ["24h Volume", coin?.volume],
-            ["Market Cap", coin?.marketCap],
-            ["Circulating", "19.7M BTC"],
+            ["24h Volume",  coin?.volume],
+            ["Market Cap",  coin?.marketCap],
+            ["7d Range",    `$${((coin?.price||0)*0.93).toFixed(2)} – $${((coin?.price||0)*1.05).toFixed(2)}`],
           ].map(([l, v]) => (
             <div key={l} className="trade-market-info-row">
-              <span className="trade-market-info-label">{l}</span>
-              <span className="trade-market-info-value">{v}</span>
+              <span>{l}</span>
+              <span>{v}</span>
             </div>
           ))}
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }

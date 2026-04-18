@@ -205,7 +205,7 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: rgba(8, 12, 24, 0.98);
+  /* background: rgba(8, 12, 24, 0.98); */
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-gold-s);
   padding: 8px 16px 20px;
@@ -228,10 +228,12 @@
   position: relative;
 }
 
-.bottom-nav-icon {
+
+
+/* .bottom-nav-icon {
   font-size: 24px;
   transition: transform 0.2s;
-}
+} */
 
 .bottom-nav-item.active .bottom-nav-icon {
   transform: scale(1.1);
@@ -277,3 +279,116 @@
     padding-bottom: 70px;
   }
 }
+
+.bottom-nav{
+  /* border: 2px solid red; */
+  border-radius: 20px 20px 0px 0px;
+}
+
+
+.bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(8, 12, 24, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-subtle);
+  padding: 8px 16px 12px;
+  /* border-radius: 20px; */
+}
+
+.bottom-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 500px;
+  margin: 0 auto;
+  /* border: 2px solid red; */
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+  flex: 1;
+  max-width: 80px;
+  /* border: 2px solid red; */
+}
+
+
+
+.bottom-nav-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.bottom-nav-item:active .bottom-nav-icon-wrapper {
+  transform: scale(0.92);
+}
+
+.bottom-nav-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  stroke-width: 1.5;
+  transition: all 0.2s ease;
+}
+
+/* Active state styles */
+.bottom-nav-item.active .bottom-nav-icon-wrapper svg {
+  stroke-width: 2;
+  /* color: var(--gold); */
+  filter: drop-shadow(0 0 6px rgba(247, 147, 26, 0.4));
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Hover effect for non-touch devices */
+@media (hover: hover) {
+  .bottom-nav-item:hover {
+    background: rgba(247, 147, 26, 0.08);
+  }
+
+  .bottom-nav-item:hover .bottom-nav-label {
+    color: var(--gold);
+  }
+}
+
+/* Active ripple effect */
+.bottom-nav-item.active {
+  background: rgba(247, 147, 26, 0.1);
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .bottom-nav-item {
+    padding: 6px 8px;
+  }
+}
+

@@ -1,695 +1,553 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+/**
+ * AppContext.jsx
+ * =============
+ * The ONLY source of truth for the entire app.
+ *
+ * What lives here:
+ *  - users[]         → every registered account with balance + portfolio
+ *  - user            → the currently logged-in user (mirror of users[i])
+ *  - coins[]         → live coin prices (simulated ticker)
+ *  - trades[]        → every buy/sell ever made
+ *  - transactions[]  → every money movement (trades, admin funding, etc.)
+ *  - overrides{}     → admin controls what happens when a user trades
+ *
+ * How balance works:
+ *  - user.balance  = USDT cash (the "wallet balance")
+ *  - user.portfolio = { BTC: 0.5, ETH: 2.1, ... } (coin holdings)
+ *  - When buying:  balance goes DOWN, portfolio coin goes UP
+ *  - When selling: balance goes UP, portfolio coin goes DOWN
+ *  - When admin funds USDT: balance goes UP, transaction recorded
+ *  - When admin funds coin: portfolio[coin] goes UP, transaction recorded
+ *
+ * Key rule: setUser and setUsers are ALWAYS called together for trades
+ * so React batches them into one render → instant UI update.
+ */
 
-const AppContext = createContext();
+import {
+  createContext, useContext, useState,
+  useEffect, useCallback, useRef,
+} from "react";
 
-// ─────────────────────────────────────────────────────────────
-//  localStorage helpers — safe, never throw
-// ─────────────────────────────────────────────────────────────
+const AppContext = createContext(null);
+
+// ── Safe localStorage wrapper ─────────────────────────────────
 const LS = {
-  get: (key, fallback = null) => {
-    try {
-      const r = localStorage.getItem(key);
-      return r ? JSON.parse(r) : fallback;
-    } catch {
-      return fallback;
-    }
-  },
-  set: (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
-  },
-  del: (key) => {
-    try {
-      localStorage.removeItem(key);
-    } catch {}
-  },
+  get: (key) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; } },
+  set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} },
+  del: (key)      => { try { localStorage.removeItem(key); } catch {} },
 };
 
-// ── seed data ─────────────────────────────────────────────────
-const INITIAL_COINS = [
-  { id: "BTC", name: "Bitcoin", price: 67420.5, change: 2.34, icon: "₿", color: "#f7931a", volume: "28.4B", marketCap: "1.32T" },
-  { id: "ETH", name: "Ethereum", price: 3541.2, change: -1.12, icon: "Ξ", color: "#627eea", volume: "15.2B", marketCap: "425B" },
-  { id: "BNB", name: "BNB", price: 412.8, change: 0.87, icon: "B", color: "#f0b90b", volume: "2.1B", marketCap: "61B" },
-  { id: "SOL", name: "Solana", price: 178.4, change: 5.21, icon: "◎", color: "#9945ff", volume: "4.8B", marketCap: "82B" },
-  { id: "XRP", name: "XRP", price: 0.6234, change: -0.45, icon: "✕", color: "#346aa9", volume: "1.9B", marketCap: "35B" },
-  { id: "ADA", name: "Cardano", price: 0.4521, change: 1.23, icon: "₳", color: "#0033ad", volume: "0.8B", marketCap: "16B" },
-  { id: "DOGE", name: "Dogecoin", price: 0.1834, change: 3.45, icon: "Ð", color: "#c2a633", volume: "1.2B", marketCap: "26B" },
-  { id: "AVAX", name: "Avalanche", price: 38.72, change: -2.11, icon: "A", color: "#e84142", volume: "0.6B", marketCap: "16B" },
+// ── Coins the platform supports ───────────────────────────────
+export const SUPPORTED_COINS = [
+  { id:"BTC",  name:"Bitcoin",    icon:"₿", color:"#f7931a", startPrice:67420.50 },
+  { id:"ETH",  name:"Ethereum",   icon:"Ξ", color:"#627eea", startPrice:3541.20  },
+  { id:"BNB",  name:"BNB",        icon:"B", color:"#f0b90b", startPrice:412.80   },
+  { id:"SOL",  name:"Solana",     icon:"◎", color:"#9945ff", startPrice:178.40   },
+  { id:"LTC",  name:"Litecoin",   icon:"Ł", color:"#bfbbbb", startPrice:82.50    },
+  { id:"XRP",  name:"XRP",        icon:"✕", color:"#346aa9", startPrice:0.6234   },
+  { id:"ADA",  name:"Cardano",    icon:"₳", color:"#0033ad", startPrice:0.4521   },
+  { id:"DOGE", name:"Dogecoin",   icon:"Ð", color:"#c2a633", startPrice:0.1834   },
 ];
 
+// Build initial coins array with volume/marketCap display strings
+const makeCoins = () => SUPPORTED_COINS.map(c => ({
+  ...c,
+  price:     c.startPrice,
+  change:    parseFloat(((Math.random() - 0.5) * 6).toFixed(2)),
+  volume:    `${(Math.random() * 20 + 1).toFixed(1)}B`,
+  marketCap: `${(Math.random() * 500 + 10).toFixed(0)}B`,
+}));
+
+// ── Demo accounts seeded on first load ───────────────────────
 const SEED_USERS = [
   {
-    id: 1,
-    email: "user@demo.com",
-    password: "demo123",
-    name: "Alex Johnson",
-    username: "crypto_alex",
-    isAdmin: false,
-    balance: 10000,
-    portfolio: { BTC: 0.15, ETH: 2.5 },
-    joined: "January 2024",
-    phone: "+1 234 567 8900",
-    location: "New York, USA",
-    bio: "Crypto enthusiast and trader since 2020",
-    avatar: null,
-    banned: false,
+    id:        1,
+    name:      "Alex Johnson",
+    email:     "user@demo.com",
+    password:  "demo123",
+    isAdmin:   false,
+    balance:   10000,       // USDT cash balance
+    portfolio: { BTC: 0.15, ETH: 2.5, LTC: 3.0 }, // coin holdings
+    banned:    false,
+    joinedAt:  "2024-01-01T00:00:00.000Z",
   },
   {
-    id: 2,
-    email: "admin@demo.com",
-    password: "admin123",
-    name: "Admin User",
-    username: "crypto_admin",
-    isAdmin: true,
-    balance: 999999,
+    id:        2,
+    name:      "Admin User",
+    email:     "admin@demo.com",
+    password:  "admin123",
+    isAdmin:   true,
+    balance:   999999,
     portfolio: {},
-    joined: "January 2024",
-    phone: "+1 987 654 3210",
-    location: "San Francisco, USA",
-    bio: "Platform administrator",
-    avatar: null,
-    banned: false,
+    banned:    false,
+    joinedAt:  "2024-01-01T00:00:00.000Z",
   },
 ];
 
-// Valid pages for navigation
-const VALID_PAGES = [
-  "home", "dashboard", "market", "trade", "portfolio",
-  "wallet", "profile", "p2p", "earn", "futures", "admin", "login", "register"
-];
-
-// ── Transaction Helper ─────────────────────────────────────────
-// Creates a standardized transaction record for the ledger
-function makeTxn({ userId, type, amount, currency = "USDT", note = "", balanceBefore, balanceAfter, meta = {} }) {
+// ── Transaction factory ───────────────────────────────────────
+// Every financial event creates one of these records.
+let txnCounter = Date.now();
+function makeTxn(fields) {
+  txnCounter++;
   return {
-    id: Date.now() + Math.random(), // ensure unique even in same ms
-    userId,
-    type,        // "credit" | "debit" | "trade_buy" | "trade_sell" | "crypto_credit" | "crypto_debit" | "reset"
-    amount,
-    currency,
-    note,
-    balanceBefore,
-    balanceAfter,
-    meta,        // e.g. { coin, coinAmount, adminAction, resultType }
-    time: new Date().toISOString(),
+    id:            txnCounter,
+    time:          new Date().toISOString(),
+    userId:        fields.userId,
+    type:          fields.type,        // see types below
+    currency:      fields.currency || "USDT",
+    amount:        fields.amount,      // positive = credit, negative = debit
+    usdValue:      fields.usdValue,    // USD equivalent (for coin txns)
+    note:          fields.note || "",
+    balanceBefore: fields.balanceBefore,
+    balanceAfter:  fields.balanceAfter,
+    meta:          fields.meta || {},
   };
+  //
+  // Transaction types used in the app:
+  //  "usdt_credit"     → admin adds USDT cash to user
+  //  "usdt_debit"      → admin removes USDT cash from user
+  //  "coin_credit"     → admin grants a coin to user portfolio
+  //  "coin_debit"      → admin removes a coin from user portfolio
+  //  "trade_buy"       → user bought a coin (balance goes down)
+  //  "trade_sell"      → user sold a coin (balance goes up)
+  //  "account_reset"   → admin reset the account
+  //  "welcome_bonus"   → starting balance on registration
 }
 
-// ── localStorage initialization functions ─────────────────────
-function initUsers() {
+// ── Storage init helpers ──────────────────────────────────────
+function loadUsers() {
   const stored = LS.get("cx_users");
-  if (stored && Array.isArray(stored) && stored.length > 0) return stored;
+  if (Array.isArray(stored) && stored.length > 0) return stored;
   LS.set("cx_users", SEED_USERS);
   return SEED_USERS;
 }
-
-function initTrades() {
-  const stored = LS.get("cx_trades");
-  return Array.isArray(stored) ? stored : [];
-}
-
-function initTransactions() {
-  const stored = LS.get("cx_transactions");
-  return Array.isArray(stored) ? stored : [];
-}
-
-function initOverrides() {
-  return LS.get("cx_overrides") ?? {};
-}
+function loadTrades()       { const s = LS.get("cx_trades");       return Array.isArray(s) ? s : []; }
+function loadTransactions() { const s = LS.get("cx_transactions"); return Array.isArray(s) ? s : []; }
+function loadOverrides()    { return LS.get("cx_overrides") ?? {}; }
 
 // ─────────────────────────────────────────────────────────────
 export function AppProvider({ children }) {
-  // ── Restore session from storage ────────────────────────────
-  const restoredUsers = initUsers();
-  const restoredUserId = LS.get("cx_session");
-  const restoredUser = restoredUserId
-    ? restoredUsers.find((u) => u.id === restoredUserId) ?? null
-    : null;
 
-  const [page, setPage] = useState(() => {
-    if (!restoredUser) return "home";
-    return restoredUser.isAdmin ? "admin" : "dashboard";
-  });
+  // Restore session
+  const savedUsers  = loadUsers();
+  const savedId     = LS.get("cx_session");
+  const savedUser   = savedId ? (savedUsers.find(u => u.id === savedId) ?? null) : null;
 
-  const [user, setUser] = useState(restoredUser);
-  const [users, setUsers] = useState(restoredUsers);
-  const [coins, setCoins] = useState(INITIAL_COINS);
-  const [trades, setTrades] = useState(initTrades);
-  const [transactions, setTransactions] = useState(initTransactions);
-  const [notifs, setNotifs] = useState([]);
-  const [overrides, setOverrides] = useState(initOverrides);
+  const [page,         setPage]         = useState(() => !savedUser ? "home" : savedUser.isAdmin ? "admin" : "dashboard");
+  const [user,         setUser]         = useState(savedUser);
+  const [users,        setUsers]        = useState(savedUsers);
+  const [coins,        setCoins]        = useState(makeCoins);
+  const [trades,       setTrades]       = useState(loadTrades);
+  const [transactions, setTransactions] = useState(loadTransactions);
+  const [notifs,       setNotifs]       = useState([]);
+  const [overrides,    setOverrides]    = useState(loadOverrides);
 
-  // ref so callbacks can read latest user without stale closure
+  // userRef lets callbacks always read the freshest user
+  // without needing user in their dependency arrays
   const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
+
+  // ── Persist everything to localStorage ───────────────────────
+  useEffect(() => { LS.set("cx_users",        users);        }, [users]);
+  useEffect(() => { LS.set("cx_trades",       trades);       }, [trades]);
+  useEffect(() => { LS.set("cx_transactions", transactions); }, [transactions]);
+  useEffect(() => { LS.set("cx_overrides",    overrides);    }, [overrides]);
   useEffect(() => {
-    userRef.current = user;
+    if (user) LS.set("cx_session", user.id);
+    else      LS.del("cx_session");
   }, [user]);
 
-  // ── Persist to localStorage whenever data changes ────────────
+  // ── Sync logged-in user when users array changes ─────────────
+  // This makes admin funding show up for the user immediately.
+  //
+  // ⚠️ IMPORTANT: user must NOT be in the dep array here.
+  //    Adding it causes: setUser → user changes → effect fires
+  //    → setUser again → infinite loop → UI freezes.
+  //    We use the functional form of setUser to safely read
+  //    the previous value without making it a dependency.
   useEffect(() => {
-    LS.set("cx_users", users);
-  }, [users]);
-  useEffect(() => {
-    LS.set("cx_trades", trades);
-  }, [trades]);
-  useEffect(() => {
-    LS.set("cx_transactions", transactions);
-  }, [transactions]);
-  useEffect(() => {
-    LS.set("cx_overrides", overrides);
-  }, [overrides]);
+    setUser(prev => {
+      if (!prev) return prev;
+      const fresh = users.find(u => u.id === prev.id);
+      if (!fresh) return prev;
+      // Only trigger a re-render if something the UI cares about changed
+      if (
+        fresh.balance   !== prev.balance  ||
+        fresh.banned    !== prev.banned   ||
+        JSON.stringify(fresh.portfolio)   !== JSON.stringify(prev.portfolio)
+      ) return fresh;
+      return prev; // same data → React skips re-render
+    });
+  }, [users]); // ← ONLY [users], never [users, user]
 
-  // ── Keep session pointer in sync with current user ───────────
+  // ── Cross-tab sync (admin on Tab A → user sees update on Tab B)
   useEffect(() => {
-    if (user) {
-      LS.set("cx_session", user.id);
-    } else {
-      LS.del("cx_session");
-    }
-  }, [user]);
-
-  // ── Keep logged-in user in sync with users array ───────────
-  // This is what makes admin funding reflect INSTANTLY for the user
-  useEffect(() => {
-    if (!user) return;
-    const fresh = users.find((u) => u.id === user.id);
-    if (fresh && JSON.stringify(fresh) !== JSON.stringify(user)) {
-      setUser(fresh);
-    }
-  }, [users, user]);
-
-  // ── Cross-tab / cross-window real-time sync ─────────────────
-  // When admin funds a user from a DIFFERENT browser tab, the user's
-  // tab receives a storage event and immediately pulls fresh data.
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key === "cx_users" && e.newValue) {
-        try {
-          const fresh = JSON.parse(e.newValue);
-          setUsers(fresh);
-        } catch {}
-      }
-      if (e.key === "cx_trades" && e.newValue) {
-        try {
-          setTrades(JSON.parse(e.newValue));
-        } catch {}
-      }
-      if (e.key === "cx_transactions" && e.newValue) {
-        try {
-          setTransactions(JSON.parse(e.newValue));
-        } catch {}
-      }
-      if (e.key === "cx_overrides" && e.newValue) {
-        try {
-          setOverrides(JSON.parse(e.newValue));
-        } catch {}
-      }
+    const handler = e => {
+      if (e.key === "cx_users"        && e.newValue) try { setUsers(JSON.parse(e.newValue));        } catch {}
+      if (e.key === "cx_trades"       && e.newValue) try { setTrades(JSON.parse(e.newValue));       } catch {}
+      if (e.key === "cx_transactions" && e.newValue) try { setTransactions(JSON.parse(e.newValue)); } catch {}
+      if (e.key === "cx_overrides"    && e.newValue) try { setOverrides(JSON.parse(e.newValue));    } catch {}
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
   }, []);
 
-  // ── Live price simulation ────────────────────────────────────
+  // ── Live coin price simulation ────────────────────────────────
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCoins((prev) =>
-        prev.map((c) => {
-          const delta = (Math.random() - 0.495) * c.price * 0.0008;
-          const newPrice = Math.max(c.price + delta, 0.001);
-          const newChange = parseFloat((c.change + (Math.random() - 0.5) * 0.05).toFixed(2));
-          return {
-            ...c,
-            price: parseFloat(newPrice.toFixed(c.price < 1 ? 4 : 2)),
-            change: newChange,
-          };
-        })
-      );
+    const iv = setInterval(() => {
+      setCoins(prev => prev.map(c => {
+        const delta    = (Math.random() - 0.495) * c.price * 0.0008;
+        const newPrice = Math.max(c.price + delta, 0.0001);
+        const newChg   = parseFloat((c.change + (Math.random() - 0.5) * 0.05).toFixed(2));
+        return { ...c, price: parseFloat(newPrice.toFixed(c.price < 1 ? 4 : 2)), change: newChg };
+      }));
     }, 2500);
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, []);
 
-  // ── Navigation with validation ───────────────────────────────
-  const navigate = useCallback((targetPage) => {
-    if (VALID_PAGES.includes(targetPage)) {
-      console.log("Navigating to:", targetPage);
-      setPage(targetPage);
-    } else {
-      console.warn(`Invalid page: ${targetPage}`);
-      setPage("dashboard");
-    }
-  }, []);
+  // ── Navigation ────────────────────────────────────────────────
+  const navigate = useCallback(p => setPage(p), []);
 
-  // ── Add notification ─────────────────────────────────────────
-  const addNotif = useCallback((msg, type = "info") => {
-    setNotifs((prev) => [
-      { id: Date.now(), msg, type, time: new Date() },
-      ...prev.slice(0, 9),
-    ]);
-  }, []);
+  // ── Notifications ─────────────────────────────────────────────
+  const addNotif = useCallback((msg, type = "info") =>
+    setNotifs(p => [{ id: Date.now(), msg, type }, ...p.slice(0, 9)]),
+  []);
 
-  // ── Auth Functions ───────────────────────────────────────────
-  const login = useCallback(
-    (email, pwd) => {
-      const all = LS.get("cx_users") ?? users;
-      const found = all.find((u) => u.email === email && u.password === pwd);
-
-      if (!found) {
-        addNotif("Invalid email or password", "error");
-        return { success: false, error: "Invalid email or password" };
-      }
-
-      if (found.banned) {
-        addNotif("Your account has been banned. Contact support.", "error");
-        return { success: false, error: "Account banned" };
-      }
-
-      setUsers(all);
-      setUser(found);
-      LS.set("cx_session", found.id);
-      setPage(found.isAdmin ? "admin" : "dashboard");
-      addNotif(`Welcome back, ${found.name}!`, "success");
-      return { success: true };
-    },
-    [users, addNotif]
-  );
-
-  const register = useCallback(
-    (name, email, pwd) => {
-      const all = LS.get("cx_users") ?? users;
-
-      if (all.find((u) => u.email === email)) {
-        addNotif("Email already exists", "error");
-        return { success: false, error: "Email already exists" };
-      }
-
-      const newUser = {
-        id: Date.now(),
-        email,
-        password: pwd,
-        name,
-        username: email.split("@")[0],
-        isAdmin: false,
-        balance: 10000,
-        portfolio: {},
-        joined: new Date().toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        }),
-        phone: "",
-        location: "",
-        bio: "New to CryptoX!",
-        avatar: null,
-        banned: false,
-      };
-
-      // Create opening balance transaction
-      const openTxn = makeTxn({
-        userId: newUser.id,
-        type: "credit",
-        amount: 10000,
-        currency: "USDT",
-        note: "Welcome bonus — demo starting balance",
-        balanceBefore: 0,
-        balanceAfter: 10000,
-      });
-
-      const nextUsers = [...all, newUser];
-      const nextTxns = [openTxn, ...transactions];
-
-      setUsers(nextUsers);
-      setTransactions(nextTxns);
-      LS.set("cx_users", nextUsers);
-      LS.set("cx_transactions", nextTxns);
-      setUser(newUser);
-      LS.set("cx_session", newUser.id);
-      setPage("dashboard");
-      addNotif(`Welcome to CryptoX, ${name}!`, "success");
-      return { success: true };
-    },
-    [users, transactions, addNotif]
-  );
-
-  const logout = useCallback(() => {
-    setUser(null);
-    LS.del("cx_session");
-    setPage("home");
-    addNotif("You have been logged out", "info");
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  AUTH
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const login = useCallback((email, pwd) => {
+    // Always read fresh from storage so newly registered users work
+    const all   = LS.get("cx_users") ?? SEED_USERS;
+    const found = all.find(u => u.email === email && u.password === pwd);
+    if (!found)       return { success: false, error: "Invalid email or password" };
+    if (found.banned) return { success: false, error: "Account suspended. Contact support." };
+    setUsers(all);
+    setUser(found);
+    LS.set("cx_session", found.id);
+    setPage(found.isAdmin ? "admin" : "dashboard");
+    addNotif(`Welcome back, ${found.name}!`, "success");
+    return { success: true };
   }, [addNotif]);
 
-  // ── Update user profile ──────────────────────────────────────
-  const updateProfile = useCallback(
-    (updatedData) => {
-      if (!user) return false;
+  const register = useCallback((name, email, pwd) => {
+    const all = LS.get("cx_users") ?? SEED_USERS;
+    if (all.find(u => u.email === email))
+      return { success: false, error: "Email already registered" };
+    const nu = {
+      id: Date.now(), name, email, password: pwd,
+      isAdmin: false, balance: 10000, portfolio: {}, banned: false,
+      joinedAt: new Date().toISOString(),
+    };
+    // Welcome transaction
+    const txn = makeTxn({
+      userId: nu.id, type: "welcome_bonus", currency: "USDT",
+      amount: 10000, usdValue: 10000,
+      note: "Demo welcome bonus — starting balance",
+      balanceBefore: 0, balanceAfter: 10000,
+    });
+    const nextUsers = [...all, nu];
+    const nextTxns  = [txn, ...(LS.get("cx_transactions") ?? [])];
+    setUsers(nextUsers); setTransactions(nextTxns);
+    LS.set("cx_users", nextUsers); LS.set("cx_transactions", nextTxns);
+    setUser(nu); LS.set("cx_session", nu.id);
+    setPage("dashboard");
+    addNotif(`Welcome to CryptoX, ${name}!`, "success");
+    return { success: true };
+  }, [addNotif]);
 
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id === user.id) {
-            const updated = { ...u, ...updatedData };
-            setUser(updated);
-            return updated;
-          }
-          return u;
-        })
-      );
+  const logout = useCallback(() => {
+    setUser(null); LS.del("cx_session"); setPage("home");
+  }, []);
 
-      addNotif("Profile updated successfully!", "success");
-      return true;
-    },
-    [user, addNotif]
-  );
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  EXECUTE TRADE
+  //  This is the core function. It must:
+  //   1. Validate the user has enough balance / coins
+  //   2. Apply the admin override (profit / loss / block)
+  //   3. Debit balance and credit portfolio (or vice versa)
+  //   4. Call BOTH setUsers and setUser so UI updates instantly
+  //   5. Record the trade and a transaction
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const executeTrade = useCallback((coinId, type, amount, price) => {
+    const cu = userRef.current; // cu = current user
+    if (!cu)        { addNotif("Please log in to trade", "error"); return { success: false }; }
+    if (cu.banned)  { addNotif("Your account is suspended", "error"); return { success: false }; }
 
-  // ── Execute Trade (with transaction record) ─────────────────
-  const executeTrade = useCallback(
-    (coinId, type, amount, price) => {
-      const currentUser = userRef.current;
-      if (!currentUser) {
-        addNotif("Please login to trade", "error");
+    const total = parseFloat((amount * price).toFixed(6));
+    const fee   = parseFloat((total * 0.001).toFixed(6)); // 0.1% fee
+
+    // ── Admin override ────────────────────────────────────────
+    const ov     = (LS.get("cx_overrides") ?? {})[cu.id] ?? "none";
+    const ovType = typeof ov === "object" ? (ov.type || "none") : ov;
+
+    if (ovType === "force_fail") {
+      addNotif("Trade failed: Insufficient liquidity", "error");
+      return { success: false };
+    }
+
+    const mult = ovType === "force_profit" ? 1.10
+               : ovType === "force_loss"   ? 0.90
+               : 1.0;
+    const resultType = ovType === "force_profit" ? "profit"
+                     : ovType === "force_loss"   ? "loss" : "normal";
+
+    // ── Validation ────────────────────────────────────────────
+    if (type === "buy") {
+      if (cu.balance < total + fee) {
+        addNotif(`Insufficient USDT. Need $${(total+fee).toFixed(2)}, have $${cu.balance.toFixed(2)}`, "error");
         return { success: false };
       }
-
-      if (currentUser.banned) {
-        addNotif("Your account is banned. Cannot execute trades.", "error");
+    } else {
+      const held = cu.portfolio?.[coinId] || 0;
+      if (held < amount) {
+        addNotif(`Insufficient ${coinId}. Need ${amount.toFixed(6)}, have ${held.toFixed(6)}`, "error");
         return { success: false };
       }
+    }
 
-      const total = amount * price;
-      const override = overrides[currentUser.id] || { type: "none" };
-      const overrideType = override.type || "none";
-
-      if (overrideType === "force_fail") {
-        addNotif("Trade failed: Admin override active", "error");
-        return { success: false };
-      }
-
-      // Apply profit/loss percentages from override
-      let multiplier = 1;
-      let resultType = "normal";
-
-      if (overrideType === "force_profit") {
-        const profitPercent = override?.profitPercent || 10;
-        multiplier = 1 + profitPercent / 100;
-        resultType = "profit";
-      } else if (overrideType === "force_loss") {
-        const lossPercent = override?.lossPercent || 10;
-        multiplier = 1 - lossPercent / 100;
-        resultType = "loss";
-      }
-
-      const fee = parseFloat((total * 0.001).toFixed(4));
-
-      const trade = {
-        id: Date.now(),
-        userId: currentUser.id,
-        coin: coinId,
-        type,
-        amount,
-        price,
-        total,
-        fee,
-        time: new Date().toISOString(),
-        resultType,
-      };
-
-      // Calculate balance changes for transaction record
-      const balBefore = currentUser.balance;
-      let balAfter = balBefore;
+    // ── Calculate new balance and portfolio ───────────────────
+    // Written as a pure function so we call it identically for
+    // both setUsers and setUser — no chance of them drifting apart.
+    function apply(currentBalance, currentPortfolio) {
+      let bal  = currentBalance;
+      let port = { ...currentPortfolio };
       if (type === "buy") {
-        balAfter = balBefore - total - fee;
+        bal  -= (total + fee);
+        port[coinId] = parseFloat(((port[coinId] || 0) + amount * mult).toFixed(6));
       } else {
-        balAfter = balBefore + total * multiplier - fee;
+        bal  += (total * mult - fee);
+        port[coinId] = parseFloat(Math.max(0, (port[coinId] || 0) - amount).toFixed(6));
       }
+      return { bal: parseFloat(bal.toFixed(4)), port };
+    }
 
-      // Create transaction record
+    const { bal: newBal, port: newPort } = apply(cu.balance, cu.portfolio || {});
+
+    // ── Build records ─────────────────────────────────────────
+    const tradeRecord = {
+      id: Date.now(), userId: cu.id, coin: coinId,
+      type, amount, price, total, fee, resultType,
+      time: new Date().toISOString(),
+    };
+
+    const txnRecord = makeTxn({
+      userId:        cu.id,
+      type:          type === "buy" ? "trade_buy" : "trade_sell",
+      currency:      "USDT",
+      amount:        type === "buy" ? -(total + fee) : +(total * mult - fee),
+      usdValue:      total,
+      note:          `${type === "buy" ? "Bought" : "Sold"} ${amount.toFixed(6)} ${coinId} @ $${price.toLocaleString()}`,
+      balanceBefore: cu.balance,
+      balanceAfter:  newBal,
+      meta:          { coinId, coinAmount: amount, price, fee, resultType },
+    });
+
+    // ── Apply state — BOTH in one synchronous block ───────────
+    // React 18 batches these into a single render automatically.
+    setUsers(prev => prev.map(u => {
+      if (u.id !== cu.id) return u;
+      const { bal, port } = apply(u.balance, u.portfolio || {});
+      return { ...u, balance: bal, portfolio: port };
+    }));
+
+    setUser(prev => {
+      if (!prev || prev.id !== cu.id) return prev;
+      const { bal, port } = apply(prev.balance, prev.portfolio || {});
+      return { ...prev, balance: bal, portfolio: port };
+    });
+
+    setTrades(p       => [tradeRecord, ...p]);
+    setTransactions(p => [txnRecord,   ...p]);
+
+    addNotif(
+      `${type === "buy" ? "✅ Bought" : "✅ Sold"} ${amount.toFixed(4)} ${coinId} @ $${price.toLocaleString()}`,
+      "success"
+    );
+    return { success: true, trade: tradeRecord };
+  }, [addNotif]);
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  DEBIT BALANCE — used by Futures to deduct margin without
+  //  touching the coin portfolio. Returns { success, error }
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const debitBalance = useCallback((amount, note = "Margin deducted") => {
+    const cu = userRef.current;
+    if (!cu) return { success: false, error: "Not logged in" };
+    if (cu.balance < amount) {
+      addNotif(`Insufficient balance. Need $${amount.toFixed(2)}, have $${cu.balance.toFixed(2)}`, "error");
+      return { success: false, error: "Insufficient balance" };
+    }
+
+    const newBal = parseFloat((cu.balance - amount).toFixed(4));
+
+    const txn = makeTxn({
+      userId:        cu.id,
+      type:          "trade_buy",
+      currency:      "USDT",
+      amount:        -amount,
+      usdValue:      amount,
+      note,
+      balanceBefore: cu.balance,
+      balanceAfter:  newBal,
+      meta:          { futures: true },
+    });
+
+    setUsers(prev => prev.map(u =>
+      u.id !== cu.id ? u : { ...u, balance: newBal }
+    ));
+    setUser(prev =>
+      prev?.id !== cu.id ? prev : { ...prev, balance: newBal }
+    );
+    setTransactions(p => [txn, ...p]);
+    return { success: true };
+  }, [addNotif]);
+  //  mode: "add" | "subtract" | "set"
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const fundUserBalance = useCallback((userId, amount, mode = "add") => {
+    setUsers(prev => prev.map(u => {
+      if (u.id !== userId) return u;
+      const before = u.balance;
+      const after  = mode === "set"      ? amount
+                   : mode === "subtract" ? Math.max(0, before - amount)
+                   : before + amount;
+      const note   = mode === "set"      ? `Admin set USDT balance to $${after.toLocaleString()}`
+                   : mode === "subtract" ? `Admin deducted $${amount.toLocaleString()} USDT`
+                   :                      `Admin credited $${amount.toLocaleString()} USDT`;
       const txn = makeTxn({
-        userId: currentUser.id,
-        type: type === "buy" ? "trade_buy" : "trade_sell",
-        amount: type === "buy" ? -(total + fee) : total * multiplier - fee,
+        userId, type: mode === "subtract" ? "usdt_debit" : "usdt_credit",
         currency: "USDT",
-        note: `${type === "buy" ? "Bought" : "Sold"} ${amount.toFixed(6)} ${coinId} @ $${price.toLocaleString()}`,
-        balanceBefore: balBefore,
-        balanceAfter: balAfter,
-        meta: { coin: coinId, coinAmount: amount, price, resultType },
+        amount:   mode === "subtract" ? -Math.abs(after - before) : Math.abs(after - before),
+        usdValue: Math.abs(after - before),
+        note, balanceBefore: before, balanceAfter: parseFloat(after.toFixed(4)),
+        meta: { adminAction: true, mode },
       });
+      setTransactions(p => [txn, ...p]);
+      addNotif(note, "success");
+      return { ...u, balance: parseFloat(after.toFixed(4)) };
+    }));
+  }, [addNotif]);
 
-      setTrades((prev) => [trade, ...prev]);
-      setTransactions((prev) => [txn, ...prev]);
-
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id !== currentUser.id) return u;
-          let bal = u.balance;
-          let port = { ...u.portfolio };
-
-          if (type === "buy") {
-            if (bal < total) {
-              addNotif("Insufficient balance", "error");
-              return u;
-            }
-            bal -= total + fee;
-            port[coinId] = (port[coinId] || 0) + amount * multiplier;
-          } else {
-            const currentAmount = port[coinId] || 0;
-            if (currentAmount < amount) {
-              addNotif("Insufficient holdings", "error");
-              return u;
-            }
-            bal += total * multiplier - fee;
-            port[coinId] = Math.max(0, currentAmount - amount);
-          }
-
-          return { ...u, balance: parseFloat(bal.toFixed(4)), portfolio: port };
-        })
-      );
-
-      addNotif(
-        `${type === "buy" ? "Bought" : "Sold"} ${amount.toFixed(4)} ${coinId} @ $${price.toLocaleString()}`,
-        "success"
-      );
-      return { success: true, trade };
-    },
-    [overrides, addNotif]
-  );
-
-  // ── Coin Management ──────────────────────────────────────────
-  const updateCoinPrice = useCallback(
-    (id, price) => {
-      setCoins((prev) => prev.map((c) => (c.id === id ? { ...c, price } : c)));
-      addNotif(`${id} price updated to $${price.toLocaleString()}`, "info");
-    },
-    [addNotif]
-  );
-
-  const getCoin = useCallback((id) => coins.find((c) => c.id === id), [coins]);
-
-  // ── Admin: Override Management ───────────────────────────────
-  const setUserTradeOverride = useCallback(
-    (uid, overrideData) => {
-      setOverrides((prev) => ({
-        ...prev,
-        [uid]: overrideData,
-      }));
-      addNotif(`Trade override set for user`, "info");
-    },
-    [addNotif]
-  );
-
-  const setAdminOverride = useCallback(
-    (uid, val) => {
-      setOverrides((prev) => ({
-        ...prev,
-        [uid]: { type: val, profitPercent: 10, lossPercent: 10 },
-      }));
-      addNotif(`Admin override set to ${val}`, "info");
-    },
-    [addNotif]
-  );
-
-  // ── Admin: Balance Management (with transaction record) ──────
-  const updateUserBalance = useCallback(
-    (uid, amount, mode = "add") => {
-      setUsers((prev) => {
-        const next = prev.map((u) => {
-          if (u.id !== uid) return u;
-          const before = u.balance;
-          let after;
-
-          switch (mode) {
-            case "set":
-              after = amount;
-              break;
-            case "subtract":
-              after = Math.max(0, before - amount);
-              break;
-            default:
-              after = before + amount;
-          }
-
-          const label =
-            mode === "set"
-              ? `Admin set balance to $${after.toLocaleString()}`
-              : mode === "subtract"
-              ? `Admin deducted $${amount.toLocaleString()} from wallet`
-              : `Admin credited $${amount.toLocaleString()} to wallet`;
-
-          // Create transaction record
-          const txn = makeTxn({
-            userId: uid,
-            type: mode === "subtract" ? "debit" : "credit",
-            amount: mode === "subtract" ? -amount : mode === "set" ? after - before : amount,
-            currency: "USDT",
-            note: label,
-            balanceBefore: before,
-            balanceAfter: parseFloat(after.toFixed(4)),
-            meta: { adminAction: true, mode },
-          });
-
-          setTransactions((p) => [txn, ...p]);
-          addNotif(label, mode === "subtract" ? "error" : "success");
-
-          return { ...u, balance: parseFloat(after.toFixed(4)) };
-        });
-        return next;
-      });
-    },
-    [addNotif]
-  );
-
-  // ── Admin: Portfolio Management (with transaction record) ────
-  const updateUserPortfolio = useCallback(
-    (uid, coinId, amount, mode = "add") => {
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id !== uid) return u;
-          const current = u.portfolio[coinId] || 0;
-          let newAmount;
-
-          switch (mode) {
-            case "add":
-              newAmount = current + amount;
-              break;
-            case "subtract":
-              newAmount = Math.max(0, current - amount);
-              break;
-            default:
-              newAmount = amount;
-          }
-
-          const coin = coins.find((c) => c.id === coinId);
-          const usdVal = (mode === "subtract" ? amount : newAmount - current) * (coin?.price || 0);
-          const label = `Admin ${mode === "subtract" ? "removed" : "granted"} ${amount} ${coinId}`;
-
-          const txn = makeTxn({
-            userId: uid,
-            type: mode === "subtract" ? "crypto_debit" : "crypto_credit",
-            amount: mode === "subtract" ? -amount : amount,
-            currency: coinId,
-            note: label,
-            balanceBefore: current,
-            balanceAfter: parseFloat(newAmount.toFixed(6)),
-            meta: { adminAction: true, mode, coinId, usdValue: usdVal, coinPrice: coin?.price },
-          });
-
-          setTransactions((p) => [txn, ...p]);
-          addNotif(label, "success");
-
-          return { ...u, portfolio: { ...u.portfolio, [coinId]: parseFloat(newAmount.toFixed(6)) } };
-        })
-      );
-    },
-    [coins, addNotif]
-  );
-
-  // ── Admin: Reset Account ─────────────────────────────────────
-  const resetUserAccount = useCallback(
-    (uid) => {
-      const target = users.find((u) => u.id === uid);
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  ADMIN: FUND USER COIN (BTC, ETH, LTC, etc.)
+  //  The user's portfolio[coinId] increases — they see the coin
+  //  appear immediately in their dashboard and wallet.
+  //  mode: "add" | "subtract" | "set"
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const fundUserCoin = useCallback((userId, coinId, amount, mode = "add") => {
+    const coin = coins.find(c => c.id === coinId);
+    setUsers(prev => prev.map(u => {
+      if (u.id !== userId) return u;
+      const before  = u.portfolio?.[coinId] || 0;
+      const after   = mode === "set"      ? amount
+                    : mode === "subtract" ? Math.max(0, before - amount)
+                    : before + amount;
+      const delta   = Math.abs(after - before);
+      const usdVal  = delta * (coin?.price || 0);
+      const note    = mode === "subtract"
+        ? `Admin removed ${delta.toFixed(6)} ${coinId} from your portfolio`
+        : `Admin credited ${delta.toFixed(6)} ${coinId} to your portfolio`;
       const txn = makeTxn({
-        userId: uid,
-        type: "reset",
-        amount: 10000,
-        currency: "USDT",
-        note: "Account reset by admin — balance restored to $10,000",
-        balanceBefore: target?.balance ?? 0,
-        balanceAfter: 10000,
-        meta: { adminAction: true },
+        userId,
+        type:          mode === "subtract" ? "coin_debit" : "coin_credit",
+        currency:      coinId,
+        amount:        mode === "subtract" ? -delta : delta,
+        usdValue:      usdVal,
+        note,
+        balanceBefore: before,
+        balanceAfter:  parseFloat(after.toFixed(6)),
+        meta:          { adminAction: true, mode, coinId, coinName: coin?.name, coinPrice: coin?.price },
       });
+      setTransactions(p => [txn, ...p]);
+      addNotif(note, "success");
+      return {
+        ...u,
+        portfolio: { ...u.portfolio, [coinId]: parseFloat(after.toFixed(6)) },
+      };
+    }));
+  }, [coins, addNotif]);
 
-      setUsers((prev) =>
-        prev.map((u) => (u.id !== uid ? u : { ...u, balance: 10000, portfolio: {} }))
-      );
-      setTrades((prev) => prev.filter((t) => t.userId !== uid));
-      setTransactions((prev) => [txn, ...prev.filter((t) => t.userId !== uid)]);
-      addNotif("User account has been reset", "info");
-    },
-    [users, addNotif]
-  );
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  ADMIN: OVERRIDE (control what happens when user trades)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const setAdminOverride = useCallback((userId, type) => {
+    // type: "none" | "force_profit" | "force_loss" | "force_fail"
+    setOverrides(prev => ({ ...prev, [userId]: type }));
+  }, []);
 
-  // ── Admin: Ban/Unban User ────────────────────────────────────
-  const banUser = useCallback(
-    (uid, banned) => {
-      setUsers((prev) => prev.map((u) => (u.id === uid ? { ...u, banned } : u)));
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  ADMIN: RESET USER ACCOUNT
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const resetUserAccount = useCallback((userId) => {
+    const target = users.find(u => u.id === userId);
+    const txn = makeTxn({
+      userId, type: "account_reset", currency: "USDT",
+      amount: 10000, usdValue: 10000,
+      note: "Account reset by admin — balance restored to $10,000",
+      balanceBefore: target?.balance ?? 0, balanceAfter: 10000,
+      meta: { adminAction: true },
+    });
+    setUsers(prev => prev.map(u => u.id !== userId ? u : { ...u, balance: 10000, portfolio: {} }));
+    setTrades(prev => prev.filter(t => t.userId !== userId));
+    setTransactions(prev => [txn, ...prev.filter(t => t.userId !== userId)]);
+    setOverrides(prev => { const n = { ...prev }; delete n[userId]; return n; });
+    addNotif("User account has been reset to $10,000", "info");
+  }, [users, addNotif]);
 
-      if (user && user.id === uid && banned) {
-        logout();
-        addNotif("Your account has been banned. Contact support.", "error");
-      }
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  ADMIN: BAN / UNBAN
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const banUser = useCallback((userId, banned) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, banned } : u));
+    addNotif(`User ${banned ? "banned" : "unbanned"}`, "info");
+  }, [addNotif]);
 
-      addNotif(`User ${banned ? "banned" : "unbanned"} successfully`, "info");
-    },
-    [user, logout, addNotif]
-  );
+  // ── Coin helpers ──────────────────────────────────────────────
+  const getCoin         = useCallback(id  => coins.find(c => c.id === id), [coins]);
+  const updateCoinPrice = useCallback((id, price) =>
+    setCoins(prev => prev.map(c => c.id === id ? { ...c, price } : c)), []);
 
-  // ── Helper Functions ─────────────────────────────────────────
-  const getUserById = useCallback((id) => users.find((u) => u.id === id), [users]);
-  const getUserTrades = useCallback((userId) => trades.filter((t) => t.userId === userId), [trades]);
-  const getUserTransactions = useCallback((userId) => transactions.filter((t) => t.userId === userId), [transactions]);
+  // ── Query helpers ─────────────────────────────────────────────
+  const getUserTrades       = useCallback(uid => trades.filter(t => t.userId === uid), [trades]);
+  const getUserTransactions = useCallback(uid => transactions.filter(t => t.userId === uid), [transactions]);
 
-  // ─────────────────────────────────────────────────────────────
+  // updateCoinPrice alias used in admin panel
+  const adminSetCoinPrice = updateCoinPrice;
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   return (
-    <AppContext.Provider
-      value={{
-        // Navigation
-        page,
-        navigate,
+    <AppContext.Provider value={{
+      // Navigation
+      page, navigate,
 
-        // User Management
-        user,
-        users,
-        login,
-        register,
-        logout,
-        updateProfile,
-        getUserById,
+      // Auth
+      user, users, login, register, logout,
 
-        // Market Data
-        coins,
-        getCoin,
-        updateCoinPrice,
+      // Coins
+      coins, getCoin, updateCoinPrice, adminSetCoinPrice,
 
-        // Trading
-        trades,
-        executeTrade,
-        getUserTrades,
+      // Trading
+      trades, executeTrade, getUserTrades,
+      debitBalance,
 
-        // Transactions (NEW)
-        transactions,
-        getUserTransactions,
+      // Transactions (full ledger)
+      transactions, getUserTransactions,
 
-        // Notifications
-        notifs,
-        addNotif,
+      // Notifications
+      notifs, addNotif,
 
-        // Admin Functions
-        overrides,
-        setAdminOverride,
-        setUserTradeOverride,
-        updateUserBalance,
-        updateUserPortfolio,
-        resetUserAccount,
-        banUser,
-      }}
-    >
+      // Admin
+      overrides,
+      setAdminOverride,
+      fundUserBalance,    // fund USDT cash
+      fundUserCoin,       // fund a specific coin (BTC, LTC, etc.)
+      resetUserAccount,
+      banUser,
+
+      // Kept for backward compat with existing pages
+      updateUserBalance:   fundUserBalance,
+      updateUserPortfolio: fundUserCoin,
+    }}>
       {children}
     </AppContext.Provider>
   );

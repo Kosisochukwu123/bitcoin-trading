@@ -6,7 +6,7 @@ import { CoinChip, StatCard, SectionHeader, EmptyState, Sparkline, CandleChart, 
 // ══════════════════════════════════════════════════════════════
 //  PORTFOLIO PAGE
 // ══════════════════════════════════════════════════════════════
-export function PortfolioPage() {
+export default function PortfolioPage() {
   const { user, coins, trades, navigate } = useApp();
 
   const holdings = Object.entries(user?.portfolio || {})
@@ -140,25 +140,61 @@ export function PortfolioPage() {
 //  FUTURES PAGE
 // ══════════════════════════════════════════════════════════════
 export function FuturesPage() {
-  const { coins, executeTrade } = useApp();
+  const { coins, user, debitBalance } = useApp();
   const [sel,    setSel]   = useState("BTC");
   const [lev,    setLev]   = useState(10);
   const [side,   setSide]  = useState("long");
   const [margin, setMargin]= useState("");
-  const [result, setResult]= useState(null);
+  const [result, setResult]= useState(null); // { success, message }
 
-  const coin    = coins.find(c => c.id === sel);
-  const posSize = parseFloat(margin || 0) * lev;
+  const coin     = coins.find(c => c.id === sel);
+  const marginAmt = parseFloat(margin) || 0;
+
+  // posSize = what the leveraged position is worth
+  // but we only DEBIT the margin from the user's balance
+  const posSize  = marginAmt * lev;
+
+  // Liquidation price: how far price must move to wipe out margin
   const liqPrice = side === "long"
-    ? ((coin?.price||0) * (1 - 0.9/lev))
-    : ((coin?.price||0) * (1 + 0.9/lev));
+    ? ((coin?.price || 0) * (1 - 0.9 / lev))
+    : ((coin?.price || 0) * (1 + 0.9 / lev));
+
+  // How many coins the position controls (informational only)
+  const posCoins = coin?.price ? posSize / coin.price : 0;
 
   const openPosition = () => {
-    const qty = posSize / (coin?.price || 1);
-    const res = executeTrade(sel, side === "long" ? "buy" : "sell", qty, coin?.price);
-    setResult(res);
-    if (res.success) { setMargin(""); setTimeout(() => setResult(null), 3000); }
+    // ── Validate ──────────────────────────────────────────
+    if (!marginAmt || marginAmt <= 0) {
+      setResult({ success: false, message: "Enter a margin amount" });
+      return;
+    }
+    if (!coin?.price) {
+      setResult({ success: false, message: "Price unavailable" });
+      return;
+    }
+
+    // ── Debit only the margin from balance ────────────────
+    // Futures margin = the actual cost to the user.
+    // The leveraged position size (posSize) is informational only.
+    const res = debitBalance(
+      marginAmt,
+      `Futures margin — ${lev}× ${side === "long" ? "Long" : "Short"} ${sel} @ $${coin.price.toLocaleString()}`
+    );
+
+    if (!res.success) {
+      setResult({ success: false, message: res.error || "Insufficient balance" });
+      return;
+    }
+
+    setResult({
+      success: true,
+      message: `${lev}× ${side === "long" ? "Long" : "Short"} opened. $${marginAmt.toLocaleString()} margin debited.`,
+    });
+    setMargin("");
+    setTimeout(() => setResult(null), 4000);
   };
+
+  const isDisabled = !marginAmt || marginAmt <= 0 || marginAmt > (user?.balance || 0);
 
   return (
     <div className="page">
@@ -173,13 +209,14 @@ export function FuturesPage() {
         <div>
           {/* Pair selector + chart */}
           <div className="card mb-12">
-            <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
+            <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap", alignItems:"center" }}>
               {coins.slice(0,5).map(c => (
                 <button
                   key={c.id}
                   onClick={() => setSel(c.id)}
                   style={{
                     padding:"6px 16px", borderRadius:8, fontFamily:"var(--font-body)", fontSize:13, fontWeight:600,
+                    cursor:"pointer",
                     border:`1px solid ${sel===c.id ? "var(--border-gold)" : "var(--border-soft)"}`,
                     background: sel===c.id ? "var(--gold-dim)" : "transparent",
                     color: sel===c.id ? "var(--gold)" : "var(--text-secondary)",
@@ -207,6 +244,8 @@ export function FuturesPage() {
 
         {/* Trade panel */}
         <div className="card" style={{ height:"fit-content" }}>
+
+          {/* Long / Short toggle */}
           <div className="toggle-wrap mb-16">
             <button className={`toggle-btn long${side==="long"?" active":""}`} onClick={() => setSide("long")}>📈 Long</button>
             <button className={`toggle-btn short${side==="short"?" active":""}`} onClick={() => setSide("short")}>📉 Short</button>
@@ -224,38 +263,102 @@ export function FuturesPage() {
               className="lev-track"
             />
             <div className="lev-labels"><span>1×</span><span>25×</span><span>50×</span><span>75×</span><span>125×</span></div>
-            {/* Risk indicator */}
-            <div style={{ marginTop:8, height:4, borderRadius:4, background:"linear-gradient(90deg, var(--green), #f59e0b 60%, var(--red))", position:"relative" }}>
-              <div style={{ position:"absolute", top:-2, width:8, height:8, background:"var(--text-primary)", borderRadius:"50%", left:`${(lev/125)*100}%`, transform:"translateX(-50%)", boxShadow:"0 0 6px rgba(0,0,0,0.5)" }}/>
+            {/* Risk colour bar */}
+            <div style={{ marginTop:8, height:4, borderRadius:4, background:"linear-gradient(90deg,var(--green),#f59e0b 60%,var(--red))", position:"relative" }}>
+              <div style={{ position:"absolute", top:-2, width:8, height:8, background:"var(--text-primary)", borderRadius:"50%", left:`${(lev/125)*100}%`, transform:"translateX(-50%)", boxShadow:"0 0 6px rgba(0,0,0,.5)" }}/>
             </div>
           </div>
 
+          {/* Available balance */}
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, padding:"9px 12px", borderRadius:8, background:"rgba(255,255,255,.03)", marginBottom:12 }}>
+            <span style={{ color:"var(--text-muted)" }}>Available</span>
+            <span style={{ fontWeight:700, color:"var(--green)", fontFamily:"var(--font-mono)" }}>
+              ${(user?.balance || 0).toLocaleString(undefined,{ minimumFractionDigits:2, maximumFractionDigits:2 })} USDT
+            </span>
+          </div>
+
+          {/* Margin input */}
           <div style={{ marginBottom:12 }}>
-            <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.4px" }}>Margin (USDT)</label>
-            <input type="number" value={margin} onChange={e => setMargin(e.target.value)} placeholder="0.00"/>
+            <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.4px" }}>
+              Margin (USDT) — amount debited from balance
+            </label>
+            <input
+              type="number"
+              value={margin}
+              onChange={e => setMargin(e.target.value)}
+              placeholder="0.00"
+            />
           </div>
 
+          {/* Position details */}
           <div className="pos-details mb-16">
-            <div className="pos-row"><span className="pos-lbl">Position Size</span><span className="pos-val">${posSize.toLocaleString(undefined,{maximumFractionDigits:2})}</span></div>
-            <div className="pos-row"><span className="pos-lbl">Entry Price</span><span className="pos-val">${coin?.price?.toLocaleString()}</span></div>
-            <div className="pos-row"><span className="pos-lbl">Liq. Price</span><span className="pos-val" style={{ color:"var(--red)" }}>${liqPrice.toFixed(2)}</span></div>
-            <div className="pos-row"><span className="pos-lbl">Margin Ratio</span><span className="pos-val">{(100/lev).toFixed(1)}%</span></div>
+            <div className="pos-row">
+              <span className="pos-lbl">Margin (cost)</span>
+              <span className="pos-val" style={{ color:"var(--green)" }}>
+                ${marginAmt.toLocaleString(undefined,{maximumFractionDigits:2})} USDT
+              </span>
+            </div>
+            <div className="pos-row">
+              <span className="pos-lbl">Position Size</span>
+              <span className="pos-val">${posSize.toLocaleString(undefined,{maximumFractionDigits:2})}</span>
+            </div>
+            <div className="pos-row">
+              <span className="pos-lbl">Entry Price</span>
+              <span className="pos-val">${coin?.price?.toLocaleString()}</span>
+            </div>
+            <div className="pos-row">
+              <span className="pos-lbl">Liq. Price</span>
+              <span className="pos-val" style={{ color:"var(--red)" }}>${liqPrice.toFixed(2)}</span>
+            </div>
+            <div className="pos-row">
+              <span className="pos-lbl">Margin Ratio</span>
+              <span className="pos-val">{(100/lev).toFixed(1)}%</span>
+            </div>
           </div>
 
+          {/* Balance after preview */}
+          {marginAmt > 0 && (
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, padding:"8px 12px", borderRadius:8, background:"rgba(255,255,255,.025)", marginBottom:14, borderTop:"1px solid var(--border-subtle)" }}>
+              <span style={{ color:"var(--text-muted)" }}>Balance after open</span>
+              <span style={{ fontWeight:700, color:"var(--green)", fontFamily:"var(--font-mono)" }}>
+                ${Math.max(0,(user?.balance||0) - marginAmt).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} USDT
+              </span>
+            </div>
+          )}
+
+          {/* Submit */}
           <button
-            className="btn w-full"
             style={{
-              padding:13, fontSize:15, borderRadius:12,
-              background: side === "long" ? "linear-gradient(135deg,#059669,var(--green))" : "linear-gradient(135deg,#dc2626,var(--red))",
+              width:"100%", padding:13, fontSize:15, fontWeight:800,
+              borderRadius:12, border:"none", cursor: isDisabled ? "not-allowed" : "pointer",
+              fontFamily:"var(--font-body)",
+              opacity: isDisabled ? 0.45 : 1,
+              background: side === "long"
+                ? "linear-gradient(135deg,#059669,var(--green))"
+                : "linear-gradient(135deg,#dc2626,var(--red))",
               color:"#fff",
-              boxShadow: side === "long" ? "0 2px 12px rgba(16,185,129,0.3)" : "0 2px 12px rgba(239,68,68,0.3)",
+              boxShadow: side === "long"
+                ? "0 2px 12px rgba(16,185,129,.3)"
+                : "0 2px 12px rgba(239,68,68,.3)",
             }}
             onClick={openPosition}
-            disabled={!parseFloat(margin)}
+            disabled={isDisabled}
           >
             Open {lev}× {side === "long" ? "Long" : "Short"}
           </button>
-          {result && <div className={`trade-result ${result.success?"success":"error"}`}>{result.success?"✅ Position opened!":"❌ Failed"}</div>}
+
+          {/* Result message */}
+          {result && (
+            <div style={{
+              marginTop:10, padding:"10px 12px", borderRadius:8,
+              fontSize:13, textAlign:"center", fontWeight:600,
+              background: result.success ? "rgba(16,185,129,.1)" : "rgba(239,68,68,.1)",
+              border:     `1px solid ${result.success ? "rgba(16,185,129,.3)" : "rgba(239,68,68,.3)"}`,
+              color:      result.success ? "var(--green)" : "var(--red)",
+            }}>
+              {result.success ? "✅ " : "❌ "}{result.message}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { CoinChip, Sparkline } from "../components/UI";
 import "./Dashboard.css";
+import image1 from "../../public/images/images-removebg-preview.png";
 
 export default function Dashboard() {
   const { user, coins, trades, navigate, getUserTrades } = useApp();
@@ -129,11 +130,383 @@ export default function Dashboard() {
   const chartData = getChartData();
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+  const Icons = {
+    P2P: () => (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M17 9L21 5L17 1"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3 5H21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M7 15L3 19L7 23"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M21 19H3"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 3V21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+
+    Send: () => (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M22 2L15 9"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M22 2L11 13"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M22 2L2 7L9 15L15 22L22 2Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+
+    Receive: () => (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 15V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V15"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 3V15M12 15L9 12M12 15L15 12"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+
+    Swap: () => (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M17 2L21 6L17 10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3 6H21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M7 22L3 18L7 14"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M21 18H3"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+
+    ArrowRight: () => (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M5 12H19" stroke="currentColor" strokeLinecap="round" />
+        <path
+          d="M12 5L19 12L12 19"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+
+
+
+
+    Profile: () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <circle
+      cx="12"
+      cy="7"
+      r="3.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M5 20C5 16.5 8.5 14.5 12 14.5C15.5 14.5 19 16.5 19 20"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+),
+
+
+Home: () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Roof */}
+    <path
+      d="M3 10L12 3L21 10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+
+    {/* House body */}
+    <path
+      d="M5 10V20H19V10"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Door */}
+    <path
+      d="M10 20V14H14V20"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+),
+
+
+Markets: () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    {/* Candle 1 */}
+    <path
+      d="M6 6V18"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+    />
+    <rect
+      x="5"
+      y="10"
+      width="2"
+      height="5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+
+    {/* Candle 2 */}
+    <path
+      d="M12 4V14"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+    />
+    <rect
+      x="11"
+      y="6"
+      width="2"
+      height="6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+
+    {/* Candle 3 */}
+    <path
+      d="M18 8V20"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+    />
+    <rect
+      x="17"
+      y="12"
+      width="2"
+      height="5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+  </svg>
+),
+
+
+Portfolio: () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Wallet body */}
+    <path
+      d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Wallet flap */}
+    <path
+      d="M3 9H21"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+
+    {/* Balance dot */}
+    <circle
+      cx="17"
+      cy="13"
+      r="1.2"
+      fill="currentColor"
+    />
+  </svg>
+),
+
+Trading: () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    {/* Up trend */}
+    <path
+      d="M4 16L10 10L14 14L20 8"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+
+    {/* Down trend */}
+    <path
+      d="M4 8L10 14L14 10L20 16"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+),
+
+
+  };
+
+  // Updated quickActions array with SVG icons
   const quickActions = [
-    { icon: "🤝", label: "P2P", page: "p2p", color: "#6366f1" },
-    { icon: "📤", label: "Send", page: "wallet", color: "#10b981" },
-    { icon: "📥", label: "Receive", page: "wallet", color: "#f59e0b" },
-    { icon: "🔄", label: "Swap", page: "trade", color: "#8b5cf6" },
+    {
+      icon: <Icons.P2P />,
+      // icon: <Icons.ArrowRight/>,
+      label: "P2P",
+      page: "p2p",
+      color: "#6366f1",
+      bgOpacity: "0.12",
+    },
+
+    {
+      icon: <Icons.Send />,
+      label: "Send",
+      page: "earn",
+      color: "#10b981",
+      bgOpacity: "0.12",
+    },
+
+    {
+      icon: <Icons.Receive />,
+      label: "Receive",
+      page: "wallet",
+      color: "#f59e0b",
+      bgOpacity: "0.12",
+    },
+
+    {
+      icon: <Icons.Swap />,
+      label: "Swap",
+      page: "trade",
+      color: "#8b5cf6",
+      bgOpacity: "0.12",
+    },
   ];
 
   const formatNumber = (num) => {
@@ -150,49 +523,76 @@ export default function Dashboard() {
     });
   };
 
+  // Helper to get emoji for coin
+  const getCoinEmoji = (symbol) => {
+    const emojis = {
+      BTC: "₿",
+      ETH: "⟠",
+      SOL: "◎",
+      USDT: "💵",
+      BNB: "🟡",
+      XRP: "💧",
+    };
+    return emojis[symbol] || "🪙";
+  };
+
+  // Helper to get gradient for coin
+  const getCoinGradient = (symbol) => {
+    const gradients = {
+      BTC: "linear-gradient(135deg, #f7931a, #f59e0b)",
+      ETH: "linear-gradient(135deg, #627eea, #4f46e5)",
+      SOL: "linear-gradient(135deg, #14f195, #00d4aa)",
+    };
+    return gradients[symbol] || "linear-gradient(135deg, #6b7280, #4b5563)";
+  };
+
   return (
     <div className="dashboard-mobile">
-      {/* Status Bar */}
-      <div className="status-bar">
-        <span className="status-time">9:41</span>
-        <div className="status-icons">
-          <span>📶</span>
-          <span>📶</span>
-          <span>🔋</span>
+      {/* Greeting Section with Animated Wave */}
+      <div className="greeting-section">
+        <div className="greeting-avatar">
+          <span className="greeting-emoji">👋</span>
+        </div>
+        <div className="greeting-text">
+          <h1 className="greeting-title">
+            Hello, {user?.name?.split(" ")[0] || "Trader"}
+          </h1>
+          <p className="greeting-subtitle">
+            Ready to trade? <span className="market-badge">📈 Bull Run</span>
+          </p>
         </div>
       </div>
 
-      {/* Greeting */}
-      <div className="greeting-section">
-        <h1 className="greeting-title">
-          Hello, {user?.name?.split(" ")[0] || "Trader"} 👋
-        </h1>
-        <p className="greeting-subtitle">Welcome back to CryptoX</p>
-      </div>
+      {/* Wallet Card with Glassmorphism */}
+      <div className="wallet-card glass-card">
 
-      {/* Wallet Card */}
-      <div className="wallet-card">
         <div className="wallet-header">
           <div className="wallet-label-group">
             <span className="wallet-icon">💰</span>
-            <span className="wallet-label">Total Portfolio Value</span>
+            <span className="wallet-label">Total Portfolio</span>
           </div>
-          <div className="wallet-badge">USD</div>
+          <div className="wallet-badge-group">
+            <span className="wallet-badge">USD</span>
+            {/* <span className="wallet-badge visibility">👁️</span> */}
+          </div>
         </div>
 
-        <div className="wallet-balance">${formatNumber(portfolioValue)}</div>
+        <div className="wallet-balance">
+          <span className="currency-symbol">$</span>
+          {formatNumber(portfolioValue)}
+        </div>
 
         <div className="wallet-change-group">
           <span
             className={`change-badge ${portfolioChange >= 0 ? "positive" : "negative"}`}
           >
-            {portfolioChange >= 0 ? "+" : ""}
+            {portfolioChange >= 0 ? "📈 +" : "📉 "}
             {portfolioChange}%
           </span>
           <span
             className={`change-amount ${portfolioChange >= 0 ? "positive" : "negative"}`}
           >
-            {portfolioChange >= 0 ? "↑" : "↓"} +$
+            {portfolioChange >= 0 ? "↑" : "↓"} $
             {formatNumber(Math.abs(portfolioChangeAmount))}
           </span>
         </div>
@@ -208,9 +608,14 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
+
+        <div className="wallet-image">
+          <img src={image1} alt="Dashboard" srcset="" />
+        </div>
+        
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions with Enhanced Design */}
       <div className="quick-actions-row">
         {quickActions.map((action) => (
           <button
@@ -218,36 +623,43 @@ export default function Dashboard() {
             className="quick-action-chip"
             onClick={() => navigate(action.page)}
             style={{
-              background: `${action.color}15`,
+              background: `${action.color}${action.bgOpacity}`,
               borderColor: `${action.color}30`,
             }}
           >
-            <span className="quick-action-icon">{action.icon}</span>
+            <span className="quick-action-icon" style={{ color: action.color }}>
+              {action.icon}
+            </span>
             <span className="quick-action-label">{action.label}</span>
           </button>
         ))}
       </div>
 
-      {/* Chart Card */}
-      <div className="chart-card">
+      {/* Chart Card with Live Indicator */}
+      <div className="chart-card glass-card">
         <div className="chart-header">
           <div className="chart-title-group">
-            <span className="chart-title">Bitcoin Price</span>
-            <button className="see-all-btn" onClick={() => navigate("market")}>
-              See All &gt;
-            </button>
+            <div className="live-indicator">
+              <span className="live-dot"></span>
+              <span className="live-text">LIVE</span>
+            </div>
+            <span className="chart-title">Bitcoin (BTC)</span>
           </div>
-          <div className="chart-price-group">
-            <span className="chart-coin-price">
-              ${btcCoin.price.toLocaleString()}
-            </span>
-            <span
-              className={`chart-change ${btcCoin.change >= 0 ? "positive" : "negative"}`}
-            >
-              {btcCoin.change >= 0 ? "+" : ""}
-              {btcCoin.change}%
-            </span>
-          </div>
+          <button className="see-all-btn" onClick={() => navigate("market")}>
+            Details <span className="arrow-icon">→</span>
+          </button>
+        </div>
+
+        <div className="chart-price-group">
+          <span className="chart-coin-price">
+            <span className="btc-icon">₿</span>
+            {btcCoin.price.toLocaleString()}
+          </span>
+          <span
+            className={`chart-change ${btcCoin.change >= 0 ? "positive" : "negative"}`}
+          >
+            {btcCoin.change >= 0 ? "📈" : "📉"} {btcCoin.change}%
+          </span>
         </div>
 
         <div className="chart-container">
@@ -258,7 +670,7 @@ export default function Dashboard() {
                   className="chart-bar"
                   style={{
                     height: `${(value / Math.max(...chartData)) * 100}%`,
-                    background: `linear-gradient(180deg, #f7931a, #f59e0b)`,
+                    background: getCoinGradient("BTC"),
                   }}
                 />
                 <span className="bar-label">{days[index]}</span>
@@ -274,6 +686,7 @@ export default function Dashboard() {
               className="mini-stat"
               onClick={() => navigate("trade")}
             >
+              <span className="mini-stat-emoji">{getCoinEmoji(coin.id)}</span>
               <span className="mini-stat-label">{coin.id}</span>
               <span className="mini-stat-value">
                 ${coin.price.toLocaleString()}
@@ -283,17 +696,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Ranking Section */}
-      <div className="ranking-card">
+      {/* Ranking Section with Enhanced Tabs */}
+      <div className="ranking-card glass-card">
         <div className="ranking-header">
-          <h3 className="ranking-title">Market Rankings</h3>
+          <h3 className="ranking-title">🏆 Market Movers</h3>
           <button className="see-all-btn" onClick={() => navigate("market")}>
-            See All &gt;
+            View All <span className="arrow-icon">→</span>
           </button>
         </div>
 
         <div className="stats-tabs">
           {["Gainers", "Losers", "24h Vol"].map((tab) => {
+            const getTabIcon = () => {
+              if (tab === "Gainers") return "🚀";
+              if (tab === "Losers") return "📉";
+              return "📊";
+            };
             const getTabValue = () => {
               if (tab === "Gainers")
                 return gainersList[0]?.change
@@ -311,6 +729,7 @@ export default function Dashboard() {
                 className={`stat-tab ${statsTab === tab ? "active" : ""}`}
                 onClick={() => setStatsTab(tab)}
               >
+                <div className="stat-tab-icon">{getTabIcon()}</div>
                 <div className="stat-tab-label">{tab}</div>
                 <div
                   className={`stat-tab-value ${tab === "Gainers" ? "positive" : tab === "Losers" ? "negative" : ""}`}
@@ -330,24 +749,36 @@ export default function Dashboard() {
               onClick={() => navigate("trade")}
             >
               <div className="ranking-left">
-                <span className="ranking-position">{idx + 1}</span>
+                <span className="ranking-position">
+                  {idx === 0
+                    ? "🥇"
+                    : idx === 1
+                      ? "🥈"
+                      : idx === 2
+                        ? "🥉"
+                        : `#${idx + 1}`}
+                </span>
                 <div className="ranking-info">
-                  <span className="ranking-symbol">{item.symbol}</span>
+                  <div className="ranking-symbol-group">
+                    <span className="ranking-emoji">
+                      {getCoinEmoji(item.symbol)}
+                    </span>
+                    <span className="ranking-symbol">{item.symbol}</span>
+                  </div>
                   <span className="ranking-name">{item.name}</span>
                 </div>
               </div>
               <div className="ranking-right">
                 <div className="ranking-price">
                   {item.volume
-                    ? item.volume
+                    ? `$${item.volume}`
                     : `$${item.price?.toLocaleString()}`}
                 </div>
                 {item.change !== undefined && (
                   <div
                     className={`ranking-change ${item.change >= 0 ? "positive" : "negative"}`}
                   >
-                    {item.change >= 0 ? "+" : ""}
-                    {item.change}%
+                    {item.change >= 0 ? "📈" : "📉"} {Math.abs(item.change)}%
                   </div>
                 )}
               </div>
@@ -358,9 +789,15 @@ export default function Dashboard() {
 
       {/* SOL/USDT Detail Card */}
       {solCoin.price > 0 && (
-        <div className="detail-card" onClick={() => navigate("trade")}>
+        <div
+          className="detail-card glass-card"
+          onClick={() => navigate("trade")}
+        >
           <div className="detail-header">
-            <span className="detail-pair">SOL/USDT</span>
+            <div className="detail-pair-group">
+              <span className="detail-emoji">◎</span>
+              <span className="detail-pair">SOL/USDT</span>
+            </div>
             <span className="detail-arrow">→</span>
           </div>
 
@@ -371,33 +808,32 @@ export default function Dashboard() {
             <span
               className={`detail-change ${solCoin.change >= 0 ? "positive" : "negative"}`}
             >
-              {solCoin.change >= 0 ? "+" : ""}
-              {solCoin.change}%
+              {solCoin.change >= 0 ? "📈" : "📉"} {Math.abs(solCoin.change)}%
             </span>
           </div>
 
           <div className="detail-stats-grid">
             <div className="detail-stat">
-              <span className="stat-label">24h High</span>
+              <span className="stat-label">📈 24h High</span>
               <span className="stat-value">
                 ${(solCoin.price * 1.05).toFixed(2)}
               </span>
             </div>
             <div className="detail-stat">
-              <span className="stat-label">24h Low</span>
+              <span className="stat-label">📉 24h Low</span>
               <span className="stat-value">
                 ${(solCoin.price * 0.95).toFixed(2)}
               </span>
             </div>
             <div className="detail-stat">
-              <span className="stat-label">Volume</span>
+              <span className="stat-label">🔄 Volume</span>
               <span className="stat-value">{solCoin.volume || "4.8B"}</span>
             </div>
           </div>
 
           {solAmount > 0 && (
             <div className="holdings-row">
-              <span className="holdings-label">Your Holdings</span>
+              <span className="holdings-label">💼 Your Holdings</span>
               <span className="holdings-value">
                 {formatCrypto(solAmount)} SOL
               </span>
@@ -405,7 +841,7 @@ export default function Dashboard() {
           )}
 
           <div className="volume-row">
-            <span className="volume-label">Market Cap</span>
+            <span className="volume-label">🏛️ Market Cap</span>
             <span className="volume-value">{solCoin.marketCap || "$82B"}</span>
           </div>
         </div>
@@ -413,18 +849,25 @@ export default function Dashboard() {
 
       {/* ETH/USDT Row */}
       {ethCoin.price > 0 && (
-        <div className="eth-card" onClick={() => navigate("trade")}>
+        <div className="eth-card glass-card" onClick={() => navigate("trade")}>
           <div className="eth-left">
-            <span className="eth-icon">⟠</span>
-            <span className="eth-label">ETH/USDT</span>
+            <div
+              className="eth-icon-wrapper"
+              style={{ background: "rgba(98, 126, 234, 0.15)" }}
+            >
+              <span className="eth-icon">⟠</span>
+            </div>
+            <div className="eth-info">
+              <span className="eth-label">ETH/USDT</span>
+              <span className="eth-sub">Ethereum</span>
+            </div>
           </div>
           <div className="eth-right">
             <div className="eth-price">${ethCoin.price.toLocaleString()}</div>
             <div
               className={`eth-change ${ethCoin.change >= 0 ? "positive" : "negative"}`}
             >
-              {ethCoin.change >= 0 ? "+" : ""}
-              {ethCoin.change}%
+              {ethCoin.change >= 0 ? "📈" : "📉"} {Math.abs(ethCoin.change)}%
             </div>
           </div>
         </div>
@@ -432,22 +875,24 @@ export default function Dashboard() {
 
       {/* Recent Activity Section */}
       {userTrades.length > 0 && (
-        <div className="recent-activity-card">
+        <div className="recent-activity-card glass-card">
           <div className="recent-header">
-            <h3 className="recent-title">Recent Activity</h3>
+            <h3 className="recent-title">
+              <span className="recent-icon">🕐</span> Recent Activity
+            </h3>
             <button className="see-all-btn" onClick={() => navigate("wallet")}>
-              View All &gt;
+              History <span className="arrow-icon">→</span>
             </button>
           </div>
           <div className="recent-list">
             {userTrades.slice(0, 3).map((trade) => (
               <div key={trade.id} className="recent-item">
-                <div className="recent-icon">
-                  {trade.type === "buy" ? "📈" : "📉"}
+                <div className="recent-icon-wrapper">
+                  {trade.type === "buy" ? "🟢" : "🔴"}
                 </div>
                 <div className="recent-details">
                   <div className="recent-type">
-                    {trade.type.toUpperCase()} {trade.coin}
+                    {trade.type === "buy" ? "Bought" : "Sold"} {trade.coin}
                   </div>
                   <div className="recent-time">
                     {new Date(trade.time).toLocaleDateString()}
@@ -466,7 +911,9 @@ export default function Dashboard() {
 
       {/* Buy/Swap Button */}
       <button className="buy-swap-button" onClick={() => navigate("trade")}>
-        Buy / Swap
+        <span className="btn-icon">🔄</span>
+        Buy / Swap Crypto
+        <span className="btn-arrow">→</span>
       </button>
 
       {/* Extra padding for bottom nav */}
