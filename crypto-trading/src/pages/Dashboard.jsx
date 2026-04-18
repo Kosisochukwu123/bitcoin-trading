@@ -133,8 +133,8 @@ export default function Dashboard() {
   const Icons = {
     P2P: () => (
       <svg
-        width="24"
-        height="24"
+        width="20"
+        height="20"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -176,8 +176,8 @@ export default function Dashboard() {
 
     Send: () => (
       <svg
-        width="24"
-        height="24"
+        width="20"
+        height="20"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -208,8 +208,8 @@ export default function Dashboard() {
 
     Receive: () => (
       <svg
-        width="24"
-        height="24"
+        width="20"
+        height="20"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -233,8 +233,8 @@ export default function Dashboard() {
 
     Swap: () => (
       <svg
-        width="24"
-        height="24"
+        width="20"
+        height="20"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -270,8 +270,8 @@ export default function Dashboard() {
 
     ArrowRight: () => (
       <svg
-        width="16"
-        height="16"
+        width="12"
+        height="12"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -287,203 +287,231 @@ export default function Dashboard() {
       </svg>
     ),
 
-
-
-
     Profile: () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <circle
-      cx="12"
-      cy="7"
-      r="3.5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M5 20C5 16.5 8.5 14.5 12 14.5C15.5 14.5 19 16.5 19 20"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-),
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle
+          cx="12"
+          cy="7"
+          r="3.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M5 20C5 16.5 8.5 14.5 12 14.5C15.5 14.5 19 16.5 19 20"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
 
+    Home: () => (
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 10L12 3L21 10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5 10V20H19V10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10 20V14H14V20"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
 
-Home: () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Roof */}
-    <path
-      d="M3 10L12 3L21 10"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    Markets: () => (
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M6 6V18"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <rect
+          x="5"
+          y="10"
+          width="2"
+          height="5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M12 4V14"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <rect
+          x="11"
+          y="6"
+          width="2"
+          height="6"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M18 8V20"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+        <rect
+          x="17"
+          y="12"
+          width="2"
+          height="5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+      </svg>
+    ),
 
-    {/* House body */}
-    <path
-      d="M5 10V20H19V10"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
+    Portfolio: () => (
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3 9H21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle
+          cx="17"
+          cy="13"
+          r="1.2"
+          fill="currentColor"
+        />
+      </svg>
+    ),
 
-    {/* Door */}
-    <path
-      d="M10 20V14H14V20"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-  </svg>
-),
+    Trading: () => (
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M4 16L10 10L14 14L20 8"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4 8L10 14L14 10L20 16"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeOpacity="0.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
 
+    TrendingUp: () => (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M23 6L13.5 15.5L8.5 10.5L1 18" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M17 6H23V12" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
 
-Markets: () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    {/* Candle 1 */}
-    <path
-      d="M6 6V18"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-    />
-    <rect
-      x="5"
-      y="10"
-      width="2"
-      height="5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
+    TrendingDown: () => (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path d="M23 18L13.5 8.5L8.5 13.5L1 6" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M17 18H23V12" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
 
-    {/* Candle 2 */}
-    <path
-      d="M12 4V14"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-    />
-    <rect
-      x="11"
-      y="6"
-      width="2"
-      height="6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
+    Fire: () => (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M12 2C10 6 8 8 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 8 14 6 12 2Z" />
+        <path d="M12 22C15.3137 22 18 19.3137 18 16C18 14 16 12 12 10C8 12 6 14 6 16C6 19.3137 8.68629 22 12 22Z" />
+      </svg>
+    ),
 
-    {/* Candle 3 */}
-    <path
-      d="M18 8V20"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-    />
-    <rect
-      x="17"
-      y="12"
-      width="2"
-      height="5"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    />
-  </svg>
-),
-
-
-Portfolio: () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Wallet body */}
-    <path
-      d="M3 7C3 5.89543 3.89543 5 5 5H19C20.1046 5 21 5.89543 21 7V17C21 18.1046 20.1046 19 19 19H5C3.89543 19 3 18.1046 3 17V7Z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-
-    {/* Wallet flap */}
-    <path
-      d="M3 9H21"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-
-    {/* Balance dot */}
-    <circle
-      cx="17"
-      cy="13"
-      r="1.2"
-      fill="currentColor"
-    />
-  </svg>
-),
-
-Trading: () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    {/* Up trend */}
-    <path
-      d="M4 16L10 10L14 14L20 8"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-
-    {/* Down trend */}
-    <path
-      d="M4 8L10 14L14 10L20 16"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeOpacity="0.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-),
-
-
+    Clock: () => (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6V12L16 14" strokeLinecap="round"/>
+      </svg>
+    ),
   };
 
   // Updated quickActions array with SVG icons
   const quickActions = [
     {
       icon: <Icons.P2P />,
-      // icon: <Icons.ArrowRight/>,
       label: "P2P",
       page: "p2p",
       color: "#6366f1",
       bgOpacity: "0.12",
     },
-
     {
       icon: <Icons.Send />,
       label: "Send",
@@ -491,7 +519,6 @@ Trading: () => (
       color: "#10b981",
       bgOpacity: "0.12",
     },
-
     {
       icon: <Icons.Receive />,
       label: "Receive",
@@ -499,7 +526,6 @@ Trading: () => (
       color: "#f59e0b",
       bgOpacity: "0.12",
     },
-
     {
       icon: <Icons.Swap />,
       label: "Swap",
@@ -521,19 +547,6 @@ Trading: () => (
       minimumFractionDigits: 4,
       maximumFractionDigits: 6,
     });
-  };
-
-  // Helper to get emoji for coin
-  const getCoinEmoji = (symbol) => {
-    const emojis = {
-      BTC: "₿",
-      ETH: "⟠",
-      SOL: "◎",
-      USDT: "💵",
-      BNB: "🟡",
-      XRP: "💧",
-    };
-    return emojis[symbol] || "🪙";
   };
 
   // Helper to get gradient for coin
@@ -565,7 +578,6 @@ Trading: () => (
 
       {/* Wallet Card with Glassmorphism */}
       <div className="wallet-card glass-card">
-
         <div className="wallet-header">
           <div className="wallet-label-group">
             <span className="wallet-icon">💰</span>
@@ -573,7 +585,6 @@ Trading: () => (
           </div>
           <div className="wallet-badge-group">
             <span className="wallet-badge">USD</span>
-            {/* <span className="wallet-badge visibility">👁️</span> */}
           </div>
         </div>
 
@@ -586,14 +597,13 @@ Trading: () => (
           <span
             className={`change-badge ${portfolioChange >= 0 ? "positive" : "negative"}`}
           >
-            {portfolioChange >= 0 ? "📈 +" : "📉 "}
+            {portfolioChange >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
             {portfolioChange}%
           </span>
           <span
             className={`change-amount ${portfolioChange >= 0 ? "positive" : "negative"}`}
           >
-            {portfolioChange >= 0 ? "↑" : "↓"} $
-            {formatNumber(Math.abs(portfolioChangeAmount))}
+            {portfolioChange >= 0 ? "↑" : "↓"} ${formatNumber(Math.abs(portfolioChangeAmount))}
           </span>
         </div>
 
@@ -610,9 +620,8 @@ Trading: () => (
         </div>
 
         <div className="wallet-image">
-          <img src={image1} alt="Dashboard" srcset="" />
+          <img src={image1} alt="Dashboard" />
         </div>
-        
       </div>
 
       {/* Quick Actions with Enhanced Design */}
@@ -646,7 +655,7 @@ Trading: () => (
             <span className="chart-title">Bitcoin (BTC)</span>
           </div>
           <button className="see-all-btn" onClick={() => navigate("market")}>
-            Details <span className="arrow-icon">→</span>
+            Details <Icons.ArrowRight />
           </button>
         </div>
 
@@ -658,7 +667,8 @@ Trading: () => (
           <span
             className={`chart-change ${btcCoin.change >= 0 ? "positive" : "negative"}`}
           >
-            {btcCoin.change >= 0 ? "📈" : "📉"} {btcCoin.change}%
+            {btcCoin.change >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
+            {Math.abs(btcCoin.change)}%
           </span>
         </div>
 
@@ -686,8 +696,7 @@ Trading: () => (
               className="mini-stat"
               onClick={() => navigate("trade")}
             >
-              <span className="mini-stat-emoji">{getCoinEmoji(coin.id)}</span>
-              <span className="mini-stat-label">{coin.id}</span>
+              <span className="mini-stat-symbol">{coin.id}</span>
               <span className="mini-stat-value">
                 ${coin.price.toLocaleString()}
               </span>
@@ -699,19 +708,16 @@ Trading: () => (
       {/* Ranking Section with Enhanced Tabs */}
       <div className="ranking-card glass-card">
         <div className="ranking-header">
-          <h3 className="ranking-title">🏆 Market Movers</h3>
+          <h3 className="ranking-title">
+            <Icons.Fire /> Market Movers
+          </h3>
           <button className="see-all-btn" onClick={() => navigate("market")}>
-            View All <span className="arrow-icon">→</span>
+            View All <Icons.ArrowRight />
           </button>
         </div>
 
         <div className="stats-tabs">
           {["Gainers", "Losers", "24h Vol"].map((tab) => {
-            const getTabIcon = () => {
-              if (tab === "Gainers") return "🚀";
-              if (tab === "Losers") return "📉";
-              return "📊";
-            };
             const getTabValue = () => {
               if (tab === "Gainers")
                 return gainersList[0]?.change
@@ -729,7 +735,9 @@ Trading: () => (
                 className={`stat-tab ${statsTab === tab ? "active" : ""}`}
                 onClick={() => setStatsTab(tab)}
               >
-                <div className="stat-tab-icon">{getTabIcon()}</div>
+                <div className="stat-tab-icon">
+                  {tab === "Gainers" ? <Icons.TrendingUp /> : tab === "Losers" ? <Icons.TrendingDown /> : <Icons.Clock />}
+                </div>
                 <div className="stat-tab-label">{tab}</div>
                 <div
                   className={`stat-tab-value ${tab === "Gainers" ? "positive" : tab === "Losers" ? "negative" : ""}`}
@@ -750,19 +758,10 @@ Trading: () => (
             >
               <div className="ranking-left">
                 <span className="ranking-position">
-                  {idx === 0
-                    ? "🥇"
-                    : idx === 1
-                      ? "🥈"
-                      : idx === 2
-                        ? "🥉"
-                        : `#${idx + 1}`}
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
                 </span>
                 <div className="ranking-info">
                   <div className="ranking-symbol-group">
-                    <span className="ranking-emoji">
-                      {getCoinEmoji(item.symbol)}
-                    </span>
                     <span className="ranking-symbol">{item.symbol}</span>
                   </div>
                   <span className="ranking-name">{item.name}</span>
@@ -778,7 +777,8 @@ Trading: () => (
                   <div
                     className={`ranking-change ${item.change >= 0 ? "positive" : "negative"}`}
                   >
-                    {item.change >= 0 ? "📈" : "📉"} {Math.abs(item.change)}%
+                    {item.change >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
+                    {Math.abs(item.change)}%
                   </div>
                 )}
               </div>
@@ -798,7 +798,7 @@ Trading: () => (
               <span className="detail-emoji">◎</span>
               <span className="detail-pair">SOL/USDT</span>
             </div>
-            <span className="detail-arrow">→</span>
+            <Icons.ArrowRight />
           </div>
 
           <div className="detail-price-row">
@@ -808,32 +808,33 @@ Trading: () => (
             <span
               className={`detail-change ${solCoin.change >= 0 ? "positive" : "negative"}`}
             >
-              {solCoin.change >= 0 ? "📈" : "📉"} {Math.abs(solCoin.change)}%
+              {solCoin.change >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
+              {Math.abs(solCoin.change)}%
             </span>
           </div>
 
           <div className="detail-stats-grid">
             <div className="detail-stat">
-              <span className="stat-label">📈 24h High</span>
+              <span className="stat-label">24h High</span>
               <span className="stat-value">
                 ${(solCoin.price * 1.05).toFixed(2)}
               </span>
             </div>
             <div className="detail-stat">
-              <span className="stat-label">📉 24h Low</span>
+              <span className="stat-label">24h Low</span>
               <span className="stat-value">
                 ${(solCoin.price * 0.95).toFixed(2)}
               </span>
             </div>
             <div className="detail-stat">
-              <span className="stat-label">🔄 Volume</span>
+              <span className="stat-label">Volume</span>
               <span className="stat-value">{solCoin.volume || "4.8B"}</span>
             </div>
           </div>
 
           {solAmount > 0 && (
             <div className="holdings-row">
-              <span className="holdings-label">💼 Your Holdings</span>
+              <span className="holdings-label">Your Holdings</span>
               <span className="holdings-value">
                 {formatCrypto(solAmount)} SOL
               </span>
@@ -841,7 +842,7 @@ Trading: () => (
           )}
 
           <div className="volume-row">
-            <span className="volume-label">🏛️ Market Cap</span>
+            <span className="volume-label">Market Cap</span>
             <span className="volume-value">{solCoin.marketCap || "$82B"}</span>
           </div>
         </div>
@@ -867,7 +868,8 @@ Trading: () => (
             <div
               className={`eth-change ${ethCoin.change >= 0 ? "positive" : "negative"}`}
             >
-              {ethCoin.change >= 0 ? "📈" : "📉"} {Math.abs(ethCoin.change)}%
+              {ethCoin.change >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
+              {Math.abs(ethCoin.change)}%
             </div>
           </div>
         </div>
@@ -878,10 +880,10 @@ Trading: () => (
         <div className="recent-activity-card glass-card">
           <div className="recent-header">
             <h3 className="recent-title">
-              <span className="recent-icon">🕐</span> Recent Activity
+              <Icons.Clock /> Recent Activity
             </h3>
             <button className="see-all-btn" onClick={() => navigate("wallet")}>
-              History <span className="arrow-icon">→</span>
+              History <Icons.ArrowRight />
             </button>
           </div>
           <div className="recent-list">
@@ -913,7 +915,7 @@ Trading: () => (
       <button className="buy-swap-button" onClick={() => navigate("trade")}>
         <span className="btn-icon">🔄</span>
         Buy / Swap Crypto
-        <span className="btn-arrow">→</span>
+        <Icons.ArrowRight />
       </button>
 
       {/* Extra padding for bottom nav */}
