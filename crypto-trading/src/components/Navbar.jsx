@@ -191,7 +191,7 @@ export default function Navbar() {
 
     {
       id: "futures",
-      label: "futures",
+      label: "Futures",
       activeIcon: <Icons.Trading />,
       icon: <Icons.Trading />,
       color: "#f59e0b",

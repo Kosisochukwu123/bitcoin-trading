@@ -1005,7 +1005,7 @@
   width: 100px;
   top: 8px;
   opacity: 0.3;
-  left: 50%;
+  left: 60%;
   transform: translateX(-50%);
   pointer-events: none;
 }

@@ -622,6 +622,7 @@ export default function Dashboard() {
         <div className="wallet-image">
           <img src={image1} alt="Dashboard" />
         </div>
+        
       </div>
 
       {/* Quick Actions with Enhanced Design */}
