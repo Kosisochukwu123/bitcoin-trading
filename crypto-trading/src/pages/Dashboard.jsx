@@ -513,8 +513,8 @@ export default function Dashboard() {
       bgOpacity: "0.12",
     },
     {
-      icon: <Icons.Send />,
-      label: "Send",
+      icon: <Icons.ArrowRight />,
+      label: "Earn",
       page: "earn",
       color: "#10b981",
       bgOpacity: "0.12",

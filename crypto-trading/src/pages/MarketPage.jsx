@@ -3,6 +3,95 @@ import { useApp } from "../context/AppContext";
 import { CoinChip, Sparkline } from "../components/UI";
 import "./MarketPage.css";
 
+// SVG Icons
+const Icons = {
+  Search: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8" strokeLinecap="round"/>
+      <path d="M21 21L17 17" strokeLinecap="round"/>
+    </svg>
+  ),
+  
+  TrendingUp: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M23 6L13.5 15.5L8.5 10.5L1 18" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M17 6H23V12" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  TrendingDown: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M23 18L13.5 8.5L8.5 13.5L1 6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M17 18H23V12" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  SortAsc: () => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 5V19M12 5L8 9M12 5L16 9" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  SortDesc: () => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 19V5M12 19L8 15M12 19L16 15" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  SortNeutral: () => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 5V19M8 9L12 5L16 9M8 15L12 19L16 15" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  ArrowRight: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M5 12H19M12 5L19 12L12 19" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  Globe: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M2 12H22M12 2C14.5 4.5 15 9 15 12C15 15 14.5 19.5 12 22C9.5 19.5 9 15 9 12C9 9 9.5 4.5 12 2Z" strokeLinecap="round"/>
+    </svg>
+  ),
+  
+  VolumeIcon: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M3 12H5L8 5L11 19L14 8L17 15L19 12H21" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  ChartIcon: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M21 16L15 10L11 14L3 6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M21 10V16H15" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  AllMarkets: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  ),
+  
+  Gainers: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.5">
+      <path d="M12 5V19M12 5L8 9M12 5L16 9" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  
+  Losers: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+      <path d="M12 19V5M12 19L8 15M12 19L16 15" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+};
+
 export function MarketPage() {
   const { coins, navigate } = useApp();
   const [q, setQ] = useState("");
@@ -94,8 +183,8 @@ export function MarketPage() {
   };
 
   const getSortIcon = (column) => {
-    if (sortBy !== column) return "↕️";
-    return sortOrder === "asc" ? "↑" : "↓";
+    if (sortBy !== column) return <Icons.SortNeutral />;
+    return sortOrder === "asc" ? <Icons.SortAsc /> : <Icons.SortDesc />;
   };
 
   return (
@@ -107,15 +196,15 @@ export function MarketPage() {
         </div>
         <div className="market-stats">
           <div className="market-stat">
-            <span className="stat-label">Total Market Cap</span>
+            <span className="stat-label"><Icons.Globe /> Total Market Cap</span>
             <span className="stat-value">$2.45T</span>
           </div>
           <div className="market-stat">
-            <span className="stat-label">24h Volume</span>
+            <span className="stat-label"><Icons.VolumeIcon /> 24h Volume</span>
             <span className="stat-value">$98.5B</span>
           </div>
           <div className="market-stat">
-            <span className="stat-label">BTC Dominance</span>
+            <span className="stat-label"><Icons.ChartIcon /> BTC Dominance</span>
             <span className="stat-value">48.2%</span>
           </div>
         </div>
@@ -123,29 +212,39 @@ export function MarketPage() {
 
       <div className="market-controls">
         <div className="search-section">
-          <input
-            className="market-search"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            placeholder="🔍 Search by coin name or symbol..."
-          />
+          <div className="search-wrapper">
+            <Icons.Search />
+            <input
+              className="market-search"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              placeholder="Search by coin name or symbol..."
+            />
+          </div>
         </div>
         
         <div className="filter-section">
-          {[
-            { id: "all", label: "All Markets", icon: "📊" },
-            { id: "gainers", label: "Top Gainers", icon: "🟢" },
-            { id: "losers", label: "Top Losers", icon: "🔴" },
-          ].map(f => (
-            <button
-              key={f.id}
-              className={`filter-btn ${filter === f.id ? "active" : ""}`}
-              onClick={() => setFilter(f.id)}
-            >
-              <span className="filter-icon">{f.icon}</span>
-              <span className="filter-label">{f.label}</span>
-            </button>
-          ))}
+          <button
+            className={`filter-btn ${filter === "all" ? "active" : ""}`}
+            onClick={() => setFilter("all")}
+          >
+            <Icons.AllMarkets />
+            <span className="filter-label">All</span>
+          </button>
+          <button
+            className={`filter-btn ${filter === "gainers" ? "active" : ""}`}
+            onClick={() => setFilter("gainers")}
+          >
+            <Icons.Gainers />
+            <span className="filter-label">Gainers</span>
+          </button>
+          <button
+            className={`filter-btn ${filter === "losers" ? "active" : ""}`}
+            onClick={() => setFilter("losers")}
+          >
+            <Icons.Losers />
+            <span className="filter-label">Losers</span>
+          </button>
         </div>
       </div>
 
@@ -160,7 +259,7 @@ export function MarketPage() {
               Price {getSortIcon("price")}
             </div>
             <div className="col-change" onClick={() => handleSort("change")}>
-              24h % {getSortIcon("change")}
+              24h {getSortIcon("change")}
             </div>
             <div className="col-volume" onClick={() => handleSort("volume")}>
               Volume {getSortIcon("volume")}
@@ -201,6 +300,7 @@ export function MarketPage() {
                 
                 <div className="col-change">
                   <div className={`change-badge ${c.change >= 0 ? "positive" : "negative"}`}>
+                    {c.change >= 0 ? <Icons.TrendingUp /> : <Icons.TrendingDown />}
                     {c.change >= 0 ? "+" : ""}{c.change}%
                   </div>
                 </div>
@@ -225,7 +325,7 @@ export function MarketPage() {
                       navigate("trade", { state: { coin: c } });
                     }}
                   >
-                    Trade
+                    Trade <Icons.ArrowRight />
                   </button>
                 </div>
               </div>
@@ -235,7 +335,7 @@ export function MarketPage() {
 
         {filtered.length === 0 && (
           <div className="empty-state">
-            <span className="empty-icon">🔍</span>
+            <Icons.Search />
             <h3>No coins found</h3>
             <p>Try searching with a different term</p>
           </div>

@@ -13,7 +13,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 24px;
   background: rgba(8, 12, 24, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(247, 147, 26, 0.2);
@@ -23,6 +23,9 @@
 }
 
 .profile-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -39,7 +42,15 @@
   border-color: #f7931a;
 }
 
+.profile-back-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 .profile-logout-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 10px;
@@ -49,6 +60,11 @@
   transition: all 0.2s;
   color: #ef4444;
   font-family: inherit;
+}
+
+.profile-logout-btn-header svg {
+  width: 14px;
+  height: 14px;
 }
 
 .profile-logout-btn-header:hover {
@@ -97,7 +113,12 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 16px;
+}
+
+.profile-avatar-edit svg {
+  width: 16px;
+  height: 16px;
+  stroke: #0a0a14;
 }
 
 .profile-avatar-edit:hover {
@@ -153,7 +174,17 @@
 }
 
 .stat-icon {
-  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: #f7931a;
 }
 
 .stat-content {
@@ -191,9 +222,13 @@
   background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   padding: 0 20px;
+  gap: 4px;
 }
 
 .profile-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 16px 24px;
   background: transparent;
   border: none;
@@ -204,6 +239,11 @@
   transition: all 0.2s;
   position: relative;
   font-family: inherit;
+}
+
+.profile-tab svg {
+  width: 16px;
+  height: 16px;
 }
 
 .profile-tab:hover {
@@ -247,6 +287,9 @@
 }
 
 .edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(247, 147, 26, 0.15);
   border: 1px solid rgba(247, 147, 26, 0.3);
   border-radius: 8px;
@@ -256,6 +299,11 @@
   transition: all 0.2s;
   color: #f7931a;
   font-family: inherit;
+}
+
+.edit-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .edit-btn:hover {
@@ -416,7 +464,17 @@
 }
 
 .security-icon {
-  font-size: 36px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.security-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: #f7931a;
 }
 
 .security-info {
@@ -483,7 +541,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
 }
 
 .activity-icon.buy {
@@ -492,6 +549,11 @@
 
 .activity-icon.sell {
   background: rgba(239, 68, 68, 0.15);
+}
+
+.activity-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .activity-details {
@@ -563,6 +625,9 @@
 }
 
 .start-trading-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: linear-gradient(135deg, #f7931a, #ffb347);
   border: none;
   border-radius: 12px;
@@ -572,6 +637,11 @@
   color: #0a0a14;
   cursor: pointer;
   font-family: inherit;
+}
+
+.start-trading-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* Settings Tab */
@@ -693,6 +763,9 @@ input:checked + .toggle-slider:before {
 }
 
 .danger-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 8px;
@@ -702,6 +775,11 @@ input:checked + .toggle-slider:before {
   cursor: pointer;
   color: #ef4444;
   font-family: inherit;
+}
+
+.danger-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .danger-btn:hover {
@@ -791,6 +869,7 @@ input:checked + .toggle-slider:before {
 
   .profile-tabs {
     padding: 0 8px;
+    overflow-x: auto;
   }
 
   .profile-tab {

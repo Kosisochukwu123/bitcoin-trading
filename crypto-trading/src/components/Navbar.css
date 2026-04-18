@@ -259,26 +259,7 @@
   color: var(--gold);
 }
 
-/* Hide desktop navbar on mobile, show bottom nav */
-@media (max-width: 768px) {
-  .navbar-desktop {
-    display: none;
-  }
-}
 
-/* Hide bottom nav on desktop, show desktop navbar */
-@media (min-width: 769px) {
-  .bottom-nav {
-    display: none;
-  }
-}
-
-/* Mobile-specific adjustments */
-@media (max-width: 768px) {
-  body {
-    padding-bottom: 70px;
-  }
-}
 
 .bottom-nav{
   /* border: 2px solid red; */
@@ -392,3 +373,28 @@
   }
 }
 
+.navbar-desktop{
+  overflow: scroll;
+}
+
+
+/* Hide desktop navbar on mobile, show bottom nav */
+@media (max-width: 768px) {
+  .navbar-desktop {
+    display: none;
+  }
+}
+
+/* Hide bottom nav on desktop, show desktop navbar */
+@media (min-width: 769px) {
+  .bottom-nav {
+    display: none !important;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 70px;
+  }
+}
