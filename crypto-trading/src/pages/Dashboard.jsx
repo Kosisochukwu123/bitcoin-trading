@@ -562,19 +562,27 @@ export default function Dashboard() {
   return (
     <div className="dashboard-mobile">
       {/* Greeting Section with Animated Wave */}
-      <div className="greeting-section">
-        <div className="greeting-avatar">
-          <span className="greeting-emoji">👋</span>
-        </div>
-        <div className="greeting-text">
-          <h1 className="greeting-title">
-            Hello, {user?.name?.split(" ")[0] || "Trader"}
-          </h1>
-          <p className="greeting-subtitle">
-            Ready to trade? <span className="market-badge">📈 Bull Run</span>
-          </p>
-        </div>
-      </div>
+     <div className="greeting-section">
+  <div className="greeting-avatar">
+    {user?.avatar ? (
+      <img 
+        src={user.avatar} 
+        alt={user?.name || "User"} 
+        className="greeting-avatar-img"
+      />
+    ) : (
+      <span className="greeting-emoji">👋</span>
+    )}
+  </div>
+  <div className="greeting-text">
+    <h1 className="greeting-title">
+      Hello, {user?.name?.split(" ")[0] || "Trader"}
+    </h1>
+    <p className="greeting-subtitle">
+      Ready to trade? <span className="market-badge">📈 Bull Run</span>
+    </p>
+  </div>
+</div>
 
       {/* Wallet Card with Glassmorphism */}
       <div className="wallet-card glass-card">

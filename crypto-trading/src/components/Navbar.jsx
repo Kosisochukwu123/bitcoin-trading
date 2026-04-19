@@ -10,7 +10,6 @@ export default function Navbar() {
   // Bottom navigation items (mobile tab bar)
 
   const Icons = {
-
     Profile: () => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <circle
@@ -169,7 +168,6 @@ export default function Navbar() {
     ),
   };
 
-
   const bottomNavItems = [
     {
       id: "dashboard",
@@ -247,7 +245,7 @@ export default function Navbar() {
             <button
               key={item.id}
               onClick={() => go(item.id)}
-              className={`nav-btn${page === item.id ? " active" : ""}`}
+              className={`nav-btn${page === item.id ? " active" : ""}${item.id === "admin" ? " admin" : ""}`}
             >
               {item.label}
             </button>
@@ -293,7 +291,54 @@ export default function Navbar() {
             <button
               className="user-menu-btn"
               onClick={() => setShowMenu(!showMenu)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                background: "var(--gold-dim)",
+                border: "1px solid var(--border-gold-s)",
+                color: "var(--gold)",
+                padding: "4px 12px 4px 4px",
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
             >
+              {/* Avatar or initial */}
+              <div
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: user?.avatar
+                    ? "transparent"
+                    : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  flexShrink: 0,
+                }}
+              >
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{ color: "#fff", fontSize: 12, fontWeight: 800 }}
+                  >
+                    {user?.name?.charAt(0)}
+                  </span>
+                )}
+              </div>
               {user?.name?.split(" ")[0]} ▾
             </button>
             {showMenu && (
@@ -309,6 +354,7 @@ export default function Navbar() {
                 </div>
                 <div className="dropdown-divider" />
                 {[
+                  { label: "👤 My Profile", page: "profile" },
                   { label: "Dashboard", page: "dashboard" },
                   { label: "Portfolio", page: "portfolio" },
                   { label: "Wallet", page: "wallet" },

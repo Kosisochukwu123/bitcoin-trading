@@ -530,10 +530,12 @@ export default function AdminPage() {
 
   const regulars = users.filter((u) => !u.isAdmin);
   const totalVol = trades.reduce((s, t) => s + t.total, 0);
-  const pending = pendingTrades.length;
+  const pending = trades.filter(
+    (t) => !t.status || t.status === "pending",
+  ).length;
   const displayTrades =
     tradeFilter === "pending"
-      ? trades.filter((t) => t.status === "pending")
+      ? trades.filter((t) => !t.status || t.status === "pending")
       : trades;
 
   const MONO = { fontFamily: "var(--font-mono)" };
@@ -1173,7 +1175,7 @@ export default function AdminPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {displayTrades.map((t) => {
               const u = users.find((x) => x.id === t.userId);
-              const isPending = t.status === "pending";
+              const isPending = !t.status || t.status === "pending";
               const isWin = t.status === "settled_win";
               const isLoss = t.status === "settled_loss";
               const coin = coins.find((c) => c.id === t.coin);

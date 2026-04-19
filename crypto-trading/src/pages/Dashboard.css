@@ -1009,3 +1009,21 @@
   transform: translateX(-50%);
   pointer-events: none;
 }
+
+.greeting-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.greeting-avatar {
+  /* Keep your existing styles, just ensure it has: */
+  width: 48px; /* or whatever size you use */
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

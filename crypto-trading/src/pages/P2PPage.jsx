@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./P2PPage.css";
 
-export function P2PPage() {
+export default function P2PPage() {
   const [tradeType, setTradeType] = useState("buy");
   const [coinFilter, setCoinFilter] = useState("BTC");
 

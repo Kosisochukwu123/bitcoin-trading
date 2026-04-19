@@ -92,7 +92,7 @@ const Icons = {
   ),
 };
 
-export function MarketPage() {
+export default function MarketPage() {
   const { coins, navigate } = useApp();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");

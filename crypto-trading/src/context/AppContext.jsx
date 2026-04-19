@@ -183,9 +183,32 @@ export function AppProvider({ children }) {
     ? (savedUsers.find((u) => u.id === savedId) ?? null)
     : null;
 
-  const [page, setPage] = useState(() =>
-    !savedUser ? "home" : savedUser.isAdmin ? "admin" : "dashboard",
-  );
+  const [page, setPage] = useState(() => {
+    if (!savedUser) return "home";
+    // Restore the last page the user was on before refresh
+    const saved = LS.get("cx_page");
+    const validPages = [
+      "home",
+      "dashboard",
+      "market",
+      "trade",
+      "portfolio",
+      "wallet",
+      "profile",
+      "p2p",
+      "earn",
+      "futures",
+      "admin",
+      "login",
+      "register",
+    ];
+    if (saved && validPages.includes(saved)) {
+      // Admin can only go to admin, regular users can't go to admin
+      if (saved === "admin" && !savedUser.isAdmin) return "dashboard";
+      return saved;
+    }
+    return savedUser.isAdmin ? "admin" : "dashboard";
+  });
   const [user, setUser] = useState(savedUser);
   const [users, setUsers] = useState(savedUsers);
   const [coins, setCoins] = useState(makeCoins);
@@ -279,11 +302,32 @@ export function AppProvider({ children }) {
     return () => clearInterval(iv);
   }, []);
 
-  const navigate = useCallback((p) => setPage(p), []);
+  const navigate = useCallback((p) => {
+    setPage(p);
+    LS.set("cx_page", p);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
   const addNotif = useCallback(
     (msg, type = "info") =>
       setNotifs((p) => [{ id: Date.now(), msg, type }, ...p.slice(0, 9)]),
     [],
+  );
+
+  // ── Update profile (name, bio, phone, location, avatar, etc.) ─
+  const updateProfile = useCallback(
+    (updatedFields) => {
+      const cu = userRef.current;
+      if (!cu) return false;
+      setUsers((prev) =>
+        prev.map((u) => (u.id !== cu.id ? u : { ...u, ...updatedFields })),
+      );
+      setUser((prev) =>
+        prev?.id !== cu.id ? prev : { ...prev, ...updatedFields },
+      );
+      addNotif("Profile updated", "success");
+      return true;
+    },
+    [addNotif],
   );
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -800,6 +844,7 @@ export function AppProvider({ children }) {
         login,
         register,
         logout,
+        updateProfile,
         coins,
         getCoin,
         updateCoinPrice,
@@ -829,3 +874,4 @@ export function AppProvider({ children }) {
 }
 
 export const useApp = () => useContext(AppContext);
+  
